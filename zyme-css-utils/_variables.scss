@@ -1,0 +1,20 @@
+$zm-breakpoints: (
+    xs: 0,
+    sm: 576px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px
+) !default;
+
+// spacings
+$zm-spacing-base: 1rem !default;
+$zm-spacings: (
+    0: 0,
+    1: $zm-spacing-base * 0.25,
+    2: $zm-spacing-base * 0.5,
+    3: $zm-spacing-base * 1,
+    4: $zm-spacing-base * 1.5,
+    5: $zm-spacing-base * 3
+) !default;
+
+$zm-opacities: 0, 25, 50, 75, 100 !default;

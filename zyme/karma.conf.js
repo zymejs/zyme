@@ -1,0 +1,1 @@
+module.exports = require('zyme-tests/karma.conf');
