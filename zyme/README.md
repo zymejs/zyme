@@ -1,2 +1,0 @@
-# Zyme
-## Core

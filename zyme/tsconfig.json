@@ -1,11 +1,7 @@
 {
-    "extends": "../../tsconfig.web.json",
+    "extends": "../tsconfig.json",
     "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "zyme": ["./src"]
-        }
+        "baseUrl": "."
     },
-    "include": ["./**/*.ts", "./**/*.vue"],
-    "exclude": ["node_modules"]
+    "include": ["./**/*.ts"]
 }

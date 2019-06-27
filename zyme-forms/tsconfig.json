@@ -1,8 +1,11 @@
 {
-    "extends": "../../tsconfig.web.json",
+    "extends": "../tsconfig.json",
     "compilerOptions": {
-        "baseUrl": "."
+        "lib": ["esnext", "dom"],
+        "baseUrl": ".",
+        "paths": {
+            "zyme": ["../zyme/src"]
+        }
     },
-    "include": ["./**/*.ts", "./**/*.vue"],
-    "exclude": ["node_modules"]
+    "include": ["./**/*.ts"]
 }

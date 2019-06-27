@@ -33,10 +33,11 @@ export interface IocProvideOptions {
     resolve?: Constructor;
 }
 
-declare module 'vue/types' {
+declare module 'vue/types/vue' {
     // tslint:disable-next-line:no-shadowed-variable
     interface Vue {
         readonly $container: Container;
+        $scrollTo(element: Vue): void;
     }
 }
 

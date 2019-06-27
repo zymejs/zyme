@@ -1,0 +1,24 @@
+{
+    "extends": "tslint:recommended",
+    "rules": {
+        "quotemark": [true, "single"],
+        "arrow-parens": false,
+        "interface-name": [true, "never-prefix"],
+        "max-classes-per-file": false,
+        "prefer-const": false,
+        "trailing-comma": false,
+        "no-var-requires": false,
+        "only-arrow-functions": false,
+        "object-literal-shorthand": false,
+        "object-literal-sort-keys": false,
+        "member-ordering": false,
+        "no-empty-interface": false,
+        "eofline": false,
+        "unified-signatures": false,
+        "no-console": false,
+        "whitespace": [false, "check-branch"]
+    },
+    "cliOptions": {
+        "exclude": ["node_modules"]
+    }
+}

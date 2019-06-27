@@ -3,10 +3,11 @@
     "version": "1.0.0",
     "private": true,
     "main": "",
-    "types": "index.d.ts" ,
+    "types": "index",
     "dependencies": {
         "zyme": "^1.0.0",
         "@types/zyme": "^1.0.0",
         "vue": "^2.6.8"
-    }
+    },
+    "include": ["./**/*.ts"]
 }
