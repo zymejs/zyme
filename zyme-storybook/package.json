@@ -1,0 +1,25 @@
+{
+    "name": "zyme-storybook",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./src/index.ts",
+    "private": true,
+    "scripts": {},
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@storybook/addon-storysource": "^5.1.9",
+        "@storybook/vue": "^5.1.9",
+        "@types/storybook__vue": "^5.0.2",
+        "js-yaml": "^3.13.1",
+        "lodash-es": "^4.17.11",
+        "raw-loader": "^3.0.0",
+        "vue": "^2.6.8",
+        "zyme": "^1.0.0"
+    },
+    "devDependencies": {
+        "tslint": "^5.11.0",
+        "typescript": "^3.5.1",
+        "typescript-formatter": "^7.2.2"
+    }
+}

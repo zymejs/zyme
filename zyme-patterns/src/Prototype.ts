@@ -1,5 +1,3 @@
-import { Immutable } from './Immutable';
-
 /**
  * Marks object as having a type defined.
  */

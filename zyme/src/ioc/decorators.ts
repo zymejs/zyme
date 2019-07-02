@@ -4,11 +4,13 @@ import isPlainObject from 'lodash-es/isPlainObject';
 import isSymbol from 'lodash-es/isSymbol';
 
 import 'reflect-metadata';
-import Vue from 'vue';
+import Vue, { ComponentOptions } from 'vue';
 
 import * as decorators from '../vuts/decorators';
 import * as reflection from '../vuts/reflection';
-import * as defs from './defs';
+
+type IocInjectOptions = Defined<ComponentOptions<Vue>['iocInject']>[''];
+type IocProvideOptions = Defined<ComponentOptions<Vue>['iocProvide']>[''];
 
 export interface InjectConfig<T> {
     optional?: boolean;
@@ -25,7 +27,9 @@ type IocInjectDecorator = PropertyDecorator & ParameterDecorator;
 export function IocInject(): IocInjectDecorator;
 export function IocInject<T>(config: InjectConfig<T>): IocInjectDecorator;
 export function IocInject<T>(type: interfaces.ServiceIdentifier<T>): IocInjectDecorator;
-export function IocInject<T>(typeOrConfig?: interfaces.ServiceIdentifier<T> | InjectConfig<T>): IocInjectDecorator {
+export function IocInject<T>(
+    typeOrConfig?: interfaces.ServiceIdentifier<T> | InjectConfig<T>
+): IocInjectDecorator {
     let optional = false;
     let identifier: interfaces.ServiceIdentifier<T> | undefined;
 
@@ -51,7 +55,7 @@ export function IocInject<T>(typeOrConfig?: interfaces.ServiceIdentifier<T> | In
         if (target instanceof Vue) {
             // setup ioc configuration for this component
             reflection.addDecorator(target, options => {
-                setInjectOptions(options, propertyKey, {
+                setInjectOptions(options, propertyKey as string, {
                     identifier: id,
                     optional: optional
                 });
@@ -70,7 +74,9 @@ export function IocInject<T>(typeOrConfig?: interfaces.ServiceIdentifier<T> | In
 
 export function IocProvide<T>(config?: ProvideConfig<T>): PropertyDecorator;
 export function IocProvide<T>(type: interfaces.ServiceIdentifier<T>): PropertyDecorator;
-export function IocProvide<T>(typeOrConfig?: interfaces.ServiceIdentifier<T> | ProvideConfig<T>): PropertyDecorator {
+export function IocProvide<T>(
+    typeOrConfig?: interfaces.ServiceIdentifier<T> | ProvideConfig<T>
+): PropertyDecorator {
     let identifier: interfaces.ServiceIdentifier<T> | undefined;
     let resolve: boolean | Constructor<T> | undefined;
 
@@ -97,13 +103,13 @@ export function IocProvide<T>(typeOrConfig?: interfaces.ServiceIdentifier<T> | P
 
         // setup ioc provide configuration for this component
         reflection.addDecorator(target, options => {
-            setProvideOptions(options, propertyKey, {
+            setProvideOptions(options, propertyKey as string, {
                 identifier: id,
                 resolve: resolve as Constructor<T>
             });
 
             if (resolve) {
-                setInjectOptions(options, propertyKey, {
+                setInjectOptions(options, propertyKey as string, {
                     identifier: id
                 });
             }
@@ -115,11 +121,15 @@ export function IocProvide<T>(typeOrConfig?: interfaces.ServiceIdentifier<T> | P
         }
     };
 }
-function isIdentifier<T>(obj?: interfaces.ServiceIdentifier<T> | any): obj is interfaces.ServiceIdentifier<T> {
+function isIdentifier<T>(
+    obj?: interfaces.ServiceIdentifier<T> | any
+): obj is interfaces.ServiceIdentifier<T> {
     return !isPlainObject(obj);
 }
 
-function assertIdentifier<T>(identifier: interfaces.ServiceIdentifier<T> | undefined): interfaces.ServiceIdentifier<T> {
+function assertIdentifier<T>(
+    identifier: interfaces.ServiceIdentifier<T> | undefined
+): interfaces.ServiceIdentifier<T> {
     // TODO: add if statement for webpack builds
 
     // strings and symbols are valid
@@ -140,12 +150,20 @@ function assertIdentifier<T>(identifier: interfaces.ServiceIdentifier<T> | undef
     return identifier;
 }
 
-function setInjectOptions(componentOptions: any, property: string | symbol, options: defs.InjectConfig) {
+function setInjectOptions(
+    componentOptions: ComponentOptions<Vue>,
+    property: string,
+    options: IocInjectOptions
+) {
     let injectOptions = componentOptions.iocInject || (componentOptions.iocInject = {});
     injectOptions[property] = options;
 }
 
-function setProvideOptions(componentOptions: any, property: string | symbol, options: defs.ProvideConfig) {
+function setProvideOptions(
+    componentOptions: ComponentOptions<Vue>,
+    property: string,
+    options: IocProvideOptions
+) {
     let provideOptions = componentOptions.iocProvide || (componentOptions.iocProvide = {});
     provideOptions[property] = options;
 }
