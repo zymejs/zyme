@@ -9,8 +9,8 @@ import Vue, { ComponentOptions } from 'vue';
 import * as decorators from '../vuts/decorators';
 import * as reflection from '../vuts/reflection';
 
-type IocInjectOptions = Defined<ComponentOptions<Vue>['iocInject']>[''];
-type IocProvideOptions = Defined<ComponentOptions<Vue>['iocProvide']>[''];
+export type IocInjectOptions = Defined<ComponentOptions<Vue>['iocInject']>[''];
+export type IocProvideOptions = Defined<ComponentOptions<Vue>['iocProvide']>[''];
 
 export interface InjectConfig<T> {
     optional?: boolean;
