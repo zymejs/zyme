@@ -8,9 +8,14 @@ export interface HttpRequestQuery {
     [key: string]: QueryPrimitive | undefined;
 }
 
+export interface HttpRequestHeaders {
+    [name: string]: string;
+}
+
 export interface HttpRequest {
     url: string;
     query?: HttpRequestQuery;
+    headers?: HttpRequestHeaders;
 }
 
 export interface HttpPostRequest extends HttpRequest {}
@@ -31,33 +36,39 @@ export class HttpError extends Error {
 
 @Injectable()
 export class HttpClient {
-    public async get(request: HttpRequest): Promise<HttpResponse> {
-        let url = this.getUrlWithQuery(request);
-
-        let response = await fetch(url, {
+    public get(request: HttpRequest): Promise<HttpResponse> {
+        return this.makeRequest(request, {
             method: 'GET'
         });
-
-        return this.handleResponse ? this.handleResponse(response) : response;
     }
 
-    public async postJson<T>(request: HttpPostJsonRequest<T>): Promise<HttpResponse> {
-        let url = this.getUrlWithQuery(request);
-
-        let response = await fetch(url, {
+    public postJson<T>(request: HttpPostJsonRequest<T>): Promise<HttpResponse> {
+        return this.makeRequest(request, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(request.body)
         });
+    }
 
+    private async makeRequest(request: HttpRequest, init: RequestInit) {
+        const url = this.getUrlWithQuery(request);
+        const headers = this.getHeaders && this.getHeaders(request);
+
+        if (headers) {
+            init.headers = Object.assign(headers, init.headers);
+        }
+
+        const response = await fetch(url, init);
         return this.handleResponse ? this.handleResponse(response) : response;
     }
 
     protected getUrl?(request: HttpRequest): string;
 
     protected getQueryParams?(request: HttpRequest): HttpRequestQuery | undefined;
+
+    protected getHeaders?(request: HttpRequest): HttpRequestHeaders | undefined;
 
     protected handleResponse?(response: HttpResponse): HttpResponse | Promise<HttpResponse>;
 
