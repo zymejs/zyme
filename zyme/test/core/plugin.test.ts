@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import * as zyme from 'zyme';
 
-Vue.use(zyme.CorePlugin);
+Vue.use(zyme.ZymePlugin);
 
 describe('Core plugin', () => {
     it('sets $vm prop on vue components', () => {

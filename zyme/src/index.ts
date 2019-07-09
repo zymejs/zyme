@@ -1,4 +1,4 @@
 export * from './vuts';
-export * from './core';
+export * from './plugin';
 export * from './ioc';
 export * from './helpers';

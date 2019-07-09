@@ -4,7 +4,7 @@ import * as zyme from 'zyme';
 
 import Component from './components/ParentComponentWithDirective.vue';
 
-Vue.use(zyme.IocPlugin);
+Vue.use(zyme.ZymePlugin);
 
 describe('IoC directives', () => {
     it('using ioc-directive allows to override container', async () => {

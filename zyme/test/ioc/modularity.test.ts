@@ -2,7 +2,7 @@ import Vue from 'vue';
 
 import * as zyme from 'zyme';
 
-Vue.use(zyme.IocPlugin);
+Vue.use(zyme.ZymePlugin);
 
 describe('IoC modularity', () => {
     it('bootstapper works with plain object modules', () => {
