@@ -3,17 +3,17 @@
 import Vue from 'vue';
 
 declare global {
-    interface Constructor<T extends {} = any> {
+    interface Constructor<T = any> {
         new (...args: any[]): T;
         prototype: T;
     }
 
-    interface DefaultConstructor<T extends {} = any> {
+    interface DefaultConstructor<T = any> {
         new (): T;
         prototype: T;
     }
 
-    interface AbstractConstructor<T extends {} = any> {
+    interface AbstractConstructor<T = any> {
         prototype: T;
         name: string;
     }
