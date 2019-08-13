@@ -19,7 +19,7 @@ module.exports = function(source) {
     const match = fileName.match(storyRegex);
 
     const category = match[2];
-    const component = match[3];
+    const component = getStoryName(match[3]);
     const story = getStoryName(match[4]);
 
     const name = category ? `${category}|${component}` : component;
