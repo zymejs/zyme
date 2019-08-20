@@ -24,4 +24,6 @@ declare global {
     }
 
     type Defined<T> = T extends undefined ? never : T;
+
+    type PromiseResult<T> = T extends Promise<infer X> ? X : never;
 }
