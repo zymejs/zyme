@@ -25,31 +25,16 @@ export abstract class FormComponent<TModel extends Model = ModelGeneric> extends
     }
 
     public async submitForm(): Promise<void> {
-        const result = this.runSubmit();
-
-        if (result instanceof Promise) {
-            this.pendingSubmit = result;
-
-            try {
-                await result;
-            } finally {
-                this.pendingSubmit = undefined;
-            }
-        }
-    }
-
-    private runSubmit(): Promise<any> | undefined {
         if (this.busy) {
             return;
         }
 
-        const submit = this.$listeners && this.$listeners.submit;
-        if (submit) {
-            if (Array.isArray(submit)) {
-                return Promise.all(submit.map(s => s()));
-            } else {
-                return submit();
-            }
+        this.pendingSubmit = this.$emitAsync('submit');
+
+        try {
+            await this.pendingSubmit;
+        } finally {
+            this.pendingSubmit = undefined;
         }
     }
 
