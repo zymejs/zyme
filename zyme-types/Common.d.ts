@@ -24,4 +24,6 @@ declare global {
     }
 
     type Defined<T> = T extends undefined ? never : T;
+
+    type Writable<T> = { -readonly [P in keyof T]-?: T[P] };
 }
