@@ -28,6 +28,10 @@ export abstract class InputComponent<TValue = any> extends FormElement {
     }
 
     public input(value: TValue | undefined) {
+        if (this.busy || this.disabled) {
+            return;
+        }
+
         const model = this.formModel;
         const modelKey = this.modelKey;
 
