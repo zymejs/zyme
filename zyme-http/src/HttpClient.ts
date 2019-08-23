@@ -24,6 +24,8 @@ export interface HttpPostJsonRequest<T> extends HttpPostRequest {
     body: T;
 }
 
+export type HttpPromise = Promise<HttpResponse> & { cancel(): void };
+
 export interface HttpResponse extends Response {
     json<T>(): Promise<T>;
 }
@@ -36,13 +38,13 @@ export class HttpError extends Error {
 
 @Injectable()
 export class HttpClient {
-    public get(request: HttpRequest): Promise<HttpResponse> {
+    public get(request: HttpRequest): HttpPromise {
         return this.makeRequest(request, {
             method: 'GET'
         });
     }
 
-    public postJson<T>(request: HttpPostJsonRequest<T>): Promise<HttpResponse> {
+    public postJson<T>(request: HttpPostJsonRequest<T>): HttpPromise {
         return this.makeRequest(request, {
             method: 'POST',
             headers: {
@@ -52,7 +54,7 @@ export class HttpClient {
         });
     }
 
-    private async makeRequest(request: HttpRequest, init: RequestInit) {
+    private makeRequest(request: HttpRequest, init: RequestInit): HttpPromise {
         const url = this.getUrlWithQuery(request);
         const headers = this.getHeaders && this.getHeaders(request);
 
@@ -60,8 +62,21 @@ export class HttpClient {
             init.headers = Object.assign(headers, init.headers);
         }
 
-        const response = await fetch(url, init);
-        return this.handleResponse ? this.handleResponse(response) : response;
+        let abort = new AbortController();
+
+        init.signal = abort.signal;
+
+        let promise = fetch(url, init);
+
+        const handleResponse = this.handleResponse;
+        if (handleResponse) {
+            promise = promise.then(response => handleResponse(response));
+        }
+
+        const httpPromise = promise as HttpPromise;
+
+        httpPromise.cancel = () => abort.abort();
+        return httpPromise;
     }
 
     protected getUrl?(request: HttpRequest): string;
@@ -100,7 +115,7 @@ export class HttpClient {
     }
 
     private getQueryParam(key: string, value: QueryPrimitive | undefined) {
-        if (value === undefined) {
+        if (value == null) {
             return undefined;
         }
 
