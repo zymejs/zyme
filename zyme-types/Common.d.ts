@@ -3,8 +3,8 @@
 import Vue from 'vue';
 
 declare global {
-    interface Constructor<T = any> {
-        new (...args: any[]): T;
+    interface Constructor<T = any, TArgs extends any[] = any[]> {
+        new (...args: TArgs): T;
         prototype: T;
     }
 
