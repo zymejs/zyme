@@ -8,7 +8,7 @@ import { ModelContext } from './ModelContext';
 
 @Component()
 export abstract class FormElement extends Vue {
-    protected model?: ModelGeneric | undefined;
+    protected model?: ModelGeneric | undefined | null;
     protected modelKey?: string | number | undefined;
 
     @IocInject({ optional: true })
@@ -18,7 +18,12 @@ export abstract class FormElement extends Vue {
     protected readonly form?: FormComponent;
 
     public get formModel(): ModelGeneric | undefined {
-        return this.model || (this.modelContext && this.modelContext.model);
+        const model = this.model;
+        if (model === null) {
+            return undefined;
+        }
+
+        return model || (this.modelContext && this.modelContext.model);
     }
 
     public get errors(): string[] {

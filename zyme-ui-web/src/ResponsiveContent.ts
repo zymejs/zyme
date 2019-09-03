@@ -1,4 +1,9 @@
-import Vue, { CreateElement, FunctionalComponentOptions, VNode } from 'vue';
+import Vue, {
+    CreateElement,
+    FunctionalComponentOptions,
+    RenderContext,
+    VNode
+} from 'vue';
 
 const state = Vue.observable({ width: 0 });
 let initialized = false;
@@ -7,13 +12,15 @@ export interface ResponsiveContentConfig {
     breakpoints: { [name: string]: number };
 }
 
-export function ResponsiveContent(config: ResponsiveContentConfig): FunctionalComponentOptions<void, void> {
+export function ResponsiveContent(
+    config: ResponsiveContentConfig
+): FunctionalComponentOptions<void, void> {
     const breakpoints = config.breakpoints;
 
     return {
         functional: true,
         name: 'Responsive',
-        render(h: CreateElement, context) {
+        render(h: CreateElement, context: RenderContext<any>) {
             if (!initialized) {
                 window.addEventListener('resize', () => {
                     state.width = window.innerWidth;
@@ -28,11 +35,16 @@ export function ResponsiveContent(config: ResponsiveContentConfig): FunctionalCo
 
             const slots = context.slots();
 
+            let defaultBreakpoint = 1;
+            if (context.props.breakpoint) {
+                defaultBreakpoint = breakpoints[context.props.breakpoint];
+            }
+
             for (let slot of Object.keys(slots)) {
                 let breakpoint: number = breakpoints[slot];
 
                 if (slot === 'default') {
-                    breakpoint = 1;
+                    breakpoint = defaultBreakpoint;
                 }
 
                 if (width > breakpoint && breakpoint >= currentSlotBreakpoint) {
