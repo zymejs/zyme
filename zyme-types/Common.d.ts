@@ -28,4 +28,10 @@ declare global {
     type Writable<T> = { -readonly [P in keyof T]-?: T[P] };
 
     type PromiseResult<T> = T extends Promise<infer X> ? X : never;
+
+    type FunctionResult<T> = T extends ((...args: any[]) => infer X) ? X : never;
+
+    type AsyncFunctionResult<T> = PromiseResult<FunctionResult<T>>;
+
+    type InstanceOf<T> = T extends Constructor<infer X> ? X : never;
 }
