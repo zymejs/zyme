@@ -38,6 +38,12 @@ export class TypeMap<T> {
             this.map.set(param.$type, value);
         }
     }
+
+    public setCollection(entries: Array<TypeMapEntry<T>>) {
+        for (let entry of entries) {
+            this.map.set(...toMapEntry(entry));
+        }
+    }
 }
 
 function toMapEntry<T>(entry: TypeMapEntry<T>): [string, T] {
