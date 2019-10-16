@@ -9,8 +9,7 @@
     "license": "ISC",
     "dependencies": {
         "@storybook/addon-storysource": "^5.1.9",
-        "@storybook/vue": "^5.1.9",
-        "@types/storybook__vue": "^5.0.2",
+        "@storybook/vue": "^5.2.4",
         "js-yaml": "^3.13.1",
         "lodash-es": "^4.17.11",
         "raw-loader": "^3.0.0",
