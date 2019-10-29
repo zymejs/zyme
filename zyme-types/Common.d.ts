@@ -34,4 +34,12 @@ declare global {
     type AsyncFunctionResult<T> = PromiseResult<FunctionResult<T>>;
 
     type InstanceOf<T> = T extends Constructor<infer X> ? X : never;
+
+    type OptionalKeysMap<A, B> = { [K in keyof A & keyof B]: A[K] extends B[K] ? never : K };
+    type OptionalKeys<T> = OptionalKeysMap<T, Required<T>>[keyof T];
+
+    type RequiredKeysMap<A, B> = { [K in keyof A & keyof B]: A[K] extends B[K] ? K : never };
+    type RequiredKeys<T> = RequiredKeysMap<T, Required<T>>[keyof T];
+
+    type AllKeys<T> = OptionalKeys<T> | RequiredKeys<T>;
 }
