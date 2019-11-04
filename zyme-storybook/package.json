@@ -8,8 +8,8 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@storybook/addon-storysource": "^5.1.9",
-        "@storybook/vue": "^5.2.4",
+        "@storybook/addon-storysource": "^5.2.5",
+        "@storybook/vue": "^5.2.5",
         "js-yaml": "^3.13.1",
         "lodash-es": "^4.17.11",
         "raw-loader": "^3.0.0",
