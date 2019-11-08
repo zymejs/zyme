@@ -1,11 +1,11 @@
 {
+    "private": true,
     "name": "@types/zyme",
     "version": "1.0.0",
-    "private": true,
     "main": "",
-    "types": "index" ,
+    "types": "index",
     "dependencies": {
-        "inversify": "^5.0.1",
-        "vue": "^2.6.8"
+        "inversify": "~5.0.1",
+        "vue": "2.6.10"
     }
 }

@@ -1,13 +1,15 @@
 {
+    "private": true,
     "name": "@types/zyme-ui",
     "version": "1.0.0",
-    "private": true,
     "main": "",
     "types": "index",
     "dependencies": {
-        "zyme": "^1.0.0",
-        "@types/zyme": "^1.0.0",
-        "vue": "^2.6.8"
+        "@types/zyme": "~1.0.0",
+        "vue": "2.6.10",
+        "zyme": "~1.0.0"
     },
-    "include": ["./**/*.ts"]
+    "include": [
+        "./**/*.ts"
+    ]
 }
