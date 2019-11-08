@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { Component, Data, IocProvide, Mounted, Prop } from 'zyme';
+import { Component, Data, IocProvide, Prop } from 'zyme';
 
 import { Model, ModelGeneric } from './Model';
 import { ModelContext } from './ModelContext';

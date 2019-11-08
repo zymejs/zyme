@@ -41,4 +41,12 @@ export abstract class InputComponent<TValue = any> extends FormElement {
 
         this.$emit('input', value);
     }
+
+    public get /* override */ errors(): string[] {
+        if (!this.modelKey) {
+            return [];
+        }
+
+        return super.errors;
+    }
 }

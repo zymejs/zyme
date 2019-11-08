@@ -1,16 +1,18 @@
+export type TypeKey = string | symbol;
+
 /**
  * Marks object as having a type defined.
  */
-export interface Typed extends Object {
-    readonly $type: string;
+export interface Typed<TKey extends TypeKey = TypeKey> extends Object {
+    readonly $type: TKey;
 }
 
 type TypedProps<T extends Typed> = {
-    [P in Exclude<keyof T, '$type'>]: T[P] | Readonly<T[P]> | Immutable<T[P]>
+    [P in Exclude<keyof T, '$type'>]: T[P] | Readonly<T[P]> | Immutable<T[P]>;
 };
 
 export interface PrototypeOptions<T extends Typed> {
-    type: string;
+    type: T['$type'];
     is?(obj: Partial<T>): obj is T;
 }
 
@@ -19,7 +21,7 @@ export interface PrototypeOptions<T extends Typed> {
  */
 export class Prototype<T extends Typed = Typed> {
     private readonly config: PrototypeOptions<T>;
-    public readonly type: string;
+    public readonly type: T['$type'];
 
     constructor(config: PrototypeOptions<T>) {
         this.config = config;

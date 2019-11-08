@@ -1,10 +1,16 @@
-import Vue, { Component } from 'vue';
+import Vue, { AsyncComponent, Component, ComponentOptions } from 'vue';
 
 export type ComponentConstructor = new (...args: any[]) => Vue;
 
+type VueComponent =
+    | ComponentOptions<Vue>
+    | typeof Vue
+    | AsyncComponent
+    | Component;
+
 export interface ComponentOptions {
     name?: string;
-    components?: { [id: string]: Component };
+    components?: { [id: string]: VueComponent };
 }
 
 export type LifecycleCallback = () => void;

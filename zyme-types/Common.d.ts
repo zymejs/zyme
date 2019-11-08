@@ -2,6 +2,8 @@
 // it's required to global scope to be working
 import Vue from 'vue';
 
+type PrimitiveConstructor<T> = new (...args: any[]) => T;
+
 declare global {
     interface Constructor<T = any, TArgs extends any[] = any[]> {
         new (...args: TArgs): T;
@@ -29,9 +31,11 @@ declare global {
 
     type PromiseResult<T> = T extends Promise<infer X> ? X : never;
 
-    type FunctionResult<T> = T extends ((...args: any[]) => infer X) ? X : never;
+    type FunctionResult<T> = T extends ((...args: any[]) => infer X)
+        ? X
+        : never;
 
     type AsyncFunctionResult<T> = PromiseResult<FunctionResult<T>>;
 
-    type InstanceOf<T> = T extends Constructor<infer X> ? X : never;
+    type InstanceOf<T> = T extends PrimitiveConstructor<infer X> ? X : never;
 }
