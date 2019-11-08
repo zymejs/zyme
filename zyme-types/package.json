@@ -6,6 +6,6 @@
     "types": "index",
     "dependencies": {
         "inversify": "~5.0.1",
-        "vue": "2.6.10"
+        "vue": "~2.6.10"
     }
 }

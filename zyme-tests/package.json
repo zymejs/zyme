@@ -21,9 +21,9 @@
         "tsconfig-paths-webpack-plugin": "~3.2.0",
         "tslint": "~5.20.1",
         "tslint-webpack-plugin": "~2.1.0",
-        "vue": "2.6.10",
-        "vue-loader": "15.7.2",
+        "vue": "~2.6.10",
+        "vue-loader": "~15.7.2",
         "vue-template-compiler": "~2.6.10",
-        "webpack": "4.41.2"
+        "webpack": "~4.41.2"
     }
 }
