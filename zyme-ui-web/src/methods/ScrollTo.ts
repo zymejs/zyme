@@ -9,7 +9,7 @@ let scrollToOffset: Offset | undefined;
 let scrollToElement: Element | undefined;
 let scrollTimeout: number | undefined;
 
-export function scrollTo(this: Vue, node: Node | Vue) {
+export function scrollTo(node: Node | Vue) {
     if (isVue(node)) {
         node = node.$el;
     }
