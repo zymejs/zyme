@@ -20,10 +20,10 @@ declare global {
         name: string;
     }
 
-    interface Dictionary<T> {
+    type Dictionary<T> = Object & {
         [id: string]: T;
         [id: number]: T;
-    }
+    };
 
     type Defined<T> = T extends undefined ? never : T;
 
@@ -31,9 +31,7 @@ declare global {
 
     type PromiseResult<T> = T extends Promise<infer X> ? X : never;
 
-    type FunctionResult<T> = T extends ((...args: any[]) => infer X)
-        ? X
-        : never;
+    type FunctionResult<T> = T extends (...args: any[]) => infer X ? X : never;
 
     type AsyncFunctionResult<T> = PromiseResult<FunctionResult<T>>;
 

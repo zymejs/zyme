@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { Component, Data, IocProvide, Prop } from 'zyme';
+import { Component, Created, Data, IocProvide, Prop } from 'zyme';
 
 import { Model, ModelGeneric } from './Model';
 import { ModelContext } from './ModelContext';
@@ -14,6 +14,16 @@ export abstract class FormComponent<
     @Data()
     private pendingSubmit?: Promise<void>;
 
+    public readonly parentForm?: FormComponent;
+
+    @Created
+    protected created() {
+        if (this.$parent && this.$parent.$container.isBound(FormComponent)) {
+            const parentForm = this.$parent.$container.get(FormComponent);
+            (this as Writable<FormComponent>).parentForm = parentForm;
+        }
+    }
+
     @IocProvide()
     protected get form(): FormComponent {
         return this;
@@ -24,8 +34,9 @@ export abstract class FormComponent<
         () => this.value
     );
 
-    public get busy() {
-        return this.pendingSubmit != null;
+    public get busy(): boolean {
+        const parent = this.parentForm;
+        return this.pendingSubmit != null || (parent != null && parent.busy);
     }
 
     public async submitForm(): Promise<void> {

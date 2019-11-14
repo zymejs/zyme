@@ -5,7 +5,7 @@ export interface QueryPrimitive {
 }
 
 export interface HttpRequestQuery {
-    [key: string]: QueryPrimitive | undefined;
+    [key: string]: QueryPrimitive | undefined | null;
 }
 
 export interface HttpRequestHeaders {
@@ -81,11 +81,15 @@ export class HttpClient {
 
     protected getUrl?(request: HttpRequest): string;
 
-    protected getQueryParams?(request: HttpRequest): HttpRequestQuery | undefined;
+    protected getQueryParams?(
+        request: HttpRequest
+    ): HttpRequestQuery | undefined;
 
     protected getHeaders?(request: HttpRequest): HttpRequestHeaders | undefined;
 
-    protected handleResponse?(response: HttpResponse): HttpResponse | Promise<HttpResponse>;
+    protected handleResponse?(
+        response: HttpResponse
+    ): HttpResponse | Promise<HttpResponse>;
 
     private getUrlWithQuery(request: HttpRequest): string {
         const url = this.getUrl ? this.getUrl(request) : request.url;
@@ -95,7 +99,9 @@ export class HttpClient {
     }
 
     private getQueryString(request: HttpRequest): string | void {
-        const params = this.getQueryParams ? this.getQueryParams(request) : request.query;
+        const params = this.getQueryParams
+            ? this.getQueryParams(request)
+            : request.query;
         if (!params) {
             return undefined;
         }
@@ -114,7 +120,10 @@ export class HttpClient {
         return '?' + queryParams;
     }
 
-    private getQueryParam(key: string, value: QueryPrimitive | undefined) {
+    private getQueryParam(
+        key: string,
+        value: QueryPrimitive | null | undefined
+    ) {
         if (value == null) {
             return undefined;
         }
