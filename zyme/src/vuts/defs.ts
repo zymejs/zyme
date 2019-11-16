@@ -1,12 +1,18 @@
-import Vue, { AsyncComponent, Component, ComponentOptions } from 'vue';
+import Vue, {
+    AsyncComponent,
+    Component,
+    ComponentOptions as VueComponentOptions,
+    FunctionalComponentOptions
+} from 'vue';
 
 export type ComponentConstructor = new (...args: any[]) => Vue;
 
 type VueComponent =
-    | ComponentOptions<Vue>
+    | VueComponentOptions<Vue>
     | typeof Vue
     | AsyncComponent
-    | Component;
+    | Component
+    | FunctionalComponentOptions<any>;
 
 export interface ComponentOptions {
     name?: string;

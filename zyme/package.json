@@ -1,29 +1,29 @@
 {
-    "name": "zyme",
-    "version": "1.0.0",
-    "description": "",
-    "main": "./src/index.ts",
     "private": true,
-    "scripts": {
-        "test-server": "karma start --no-single-run",
-        "test-once": "karma start --single-run"
-    },
-    "author": "",
+    "name": "zyme",
+    "description": "",
     "license": "ISC",
+    "author": "",
+    "version": "1.0.0",
+    "main": "./src/index.ts",
+    "scripts": {
+        "test-once": "karma start --single-run",
+        "test-server": "karma start --no-single-run"
+    },
     "dependencies": {
-        "inversify": "^5.0.1",
-        "lodash-es": "^4.17.11",
-        "reflect-metadata": "^0.1.13",
-        "vue": "^2.6.8"
+        "inversify": "~5.0.1",
+        "lodash-es": "~4.17.11",
+        "reflect-metadata": "~0.1.13",
+        "vue": "~2.6.10"
     },
     "devDependencies": {
-        "@types/jasmine": "^3.4.4",
-        "@types/lodash-es": "^4.17.1",
-        "@types/zyme": "^1.0.0",
-        "karma": "^4.4.1",
-        "tslint": "^5.18.0",
-        "typescript": "^3.6.4",
-        "typescript-formatter": "^7.2.2",
-        "zyme-tests": "^1.0.0"
+        "@types/jasmine": "~3.4.6",
+        "@types/lodash-es": "~4.17.1",
+        "@types/zyme": "~1.0.0",
+        "karma": "~4.4.1",
+        "tslint": "~5.20.1",
+        "typescript": "~3.7.2",
+        "typescript-formatter": "~7.2.2",
+        "zyme-tests": "~1.0.0"
     }
 }

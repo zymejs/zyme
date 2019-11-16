@@ -54,7 +54,7 @@ export function clearErrorsForProp<T extends Model>(model: T, prop: string | num
     }
 }
 
-export function clearAllErrors<T extends Model | Model[]>(model: T): void {
+export function clearAllErrors<T extends Model>(model: T | T[]): void {
     if (!model) {
         return;
     }
@@ -63,7 +63,11 @@ export function clearAllErrors<T extends Model | Model[]>(model: T): void {
         for (let item of model) {
             clearAllErrors(item);
         }
-    } else if (model instanceof Object) {
+    } else {
+        if (!model.$errors) {
+            return;
+        }
+
         Vue.set(model, '$errors', undefined);
 
         for (let prop of Object.keys(model)) {
