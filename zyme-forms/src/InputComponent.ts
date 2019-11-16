@@ -27,7 +27,7 @@ export abstract class InputComponent<TValue = any> extends FormElement {
         return this.value;
     }
 
-    public input(value: TValue | undefined) {
+    public input(value: TValue | null) {
         if (this.busy || this.disabled) {
             return;
         }

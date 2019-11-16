@@ -14,16 +14,6 @@ export abstract class FormComponent<
     @Data()
     private pendingSubmit?: Promise<void>;
 
-    public readonly parentForm?: FormComponent;
-
-    @Created
-    protected created() {
-        if (this.$parent && this.$parent.$container.isBound(FormComponent)) {
-            const parentForm = this.$parent.$container.get(FormComponent);
-            (this as Writable<FormComponent>).parentForm = parentForm;
-        }
-    }
-
     @IocProvide()
     protected get form(): FormComponent {
         return this;
@@ -35,8 +25,7 @@ export abstract class FormComponent<
     );
 
     public get busy(): boolean {
-        const parent = this.parentForm;
-        return this.pendingSubmit != null || (parent != null && parent.busy);
+        return this.pendingSubmit != null;
     }
 
     public async submitForm(): Promise<void> {
