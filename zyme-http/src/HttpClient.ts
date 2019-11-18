@@ -20,7 +20,7 @@ export interface HttpRequest {
 
 export interface HttpPostRequest extends HttpRequest {}
 
-export interface HttpPostJsonRequest<T> extends HttpPostRequest {
+export interface HttpPostJsonRequest<T = {}> extends HttpPostRequest {
     body: T;
 }
 
