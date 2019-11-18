@@ -14,7 +14,7 @@ export interface HttpRequestHeaders {
 
 export interface HttpRequest {
     url: string;
-    query?: HttpRequestQuery;
+    query?: HttpRequestQuery | null;
     headers?: HttpRequestHeaders;
 }
 
@@ -70,7 +70,7 @@ export class HttpClient {
 
         const handleResponse = this.handleResponse;
         if (handleResponse) {
-            promise = promise.then(response => handleResponse(response));
+            promise = promise.then(response => handleResponse(request, response));
         }
 
         const httpPromise = promise as HttpPromise;
@@ -85,7 +85,10 @@ export class HttpClient {
 
     protected getHeaders?(request: HttpRequest): HttpRequestHeaders | undefined;
 
-    protected handleResponse?(response: HttpResponse): HttpResponse | Promise<HttpResponse>;
+    protected handleResponse?(
+        request: HttpRequest,
+        response: HttpResponse
+    ): HttpResponse | Promise<HttpResponse>;
 
     private getUrlWithQuery(request: HttpRequest): string {
         const url = this.getUrl ? this.getUrl(request) : request.url;
