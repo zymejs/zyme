@@ -14,13 +14,13 @@ export interface HttpRequestHeaders {
 
 export interface HttpRequest {
     url: string;
-    query?: HttpRequestQuery;
+    query?: HttpRequestQuery | null;
     headers?: HttpRequestHeaders;
 }
 
 export interface HttpPostRequest extends HttpRequest {}
 
-export interface HttpPostJsonRequest<T> extends HttpPostRequest {
+export interface HttpPostJsonRequest<T = {}> extends HttpPostRequest {
     body: T;
 }
 
@@ -70,7 +70,7 @@ export class HttpClient {
 
         const handleResponse = this.handleResponse;
         if (handleResponse) {
-            promise = promise.then(response => handleResponse(response));
+            promise = promise.then(response => handleResponse(request, response));
         }
 
         const httpPromise = promise as HttpPromise;
@@ -88,6 +88,7 @@ export class HttpClient {
     protected getHeaders?(request: HttpRequest): HttpRequestHeaders | undefined;
 
     protected handleResponse?(
+        request: HttpRequest,
         response: HttpResponse
     ): HttpResponse | Promise<HttpResponse>;
 
