@@ -27,7 +27,10 @@ export function hasErrors<T extends Model>(model: T) {
     return errorsAll != null && Object.keys(errorsAll).length > 0;
 }
 
-export function getErrorsForProp<T extends Model>(model: T, prop: ModelErrorKey): string[] {
+export function getErrorsForProp<T extends Model>(
+    model: T,
+    prop: ModelErrorKey
+): string[] {
     const errorsAll = model && model.$errors;
     const errorKey = getKey(prop);
 
@@ -46,7 +49,10 @@ export function getErrors<T extends Model>(model: T) {
     return model.$errors || Vue.set(model, '$errors', {});
 }
 
-export function clearErrorsForProp<T extends Model>(model: T, prop: string | number): void {
+export function clearErrorsForProp<T extends Model>(
+    model: T,
+    prop: string | number
+): void {
     let errorsAll = model && model.$errors;
     if (errorsAll) {
         const errorKey = getKey(prop);
@@ -63,11 +69,7 @@ export function clearAllErrors<T extends Model>(model: T | T[]): void {
         for (let item of model) {
             clearAllErrors(item);
         }
-    } else {
-        if (!model.$errors) {
-            return;
-        }
-
+    } else if (model instanceof Object) {
         Vue.set(model, '$errors', undefined);
 
         for (let prop of Object.keys(model)) {
@@ -77,7 +79,10 @@ export function clearAllErrors<T extends Model>(model: T | T[]): void {
     }
 }
 
-export function setErrors<T extends Model>(model: T, errors: ModelError[]): void {
+export function setErrors<T extends Model>(
+    model: T,
+    errors: ModelError[]
+): void {
     clearAllErrors(model);
 
     if (errors && errors.length) {
@@ -92,7 +97,11 @@ export function setErrors<T extends Model>(model: T, errors: ModelError[]): void
     }
 }
 
-function addErrorForExpression(model: ModelGeneric, expr: jsep.Expression, message: string) {
+function addErrorForExpression(
+    model: ModelGeneric,
+    expr: jsep.Expression,
+    message: string
+) {
     if (!expr) {
         return;
     }
@@ -150,7 +159,11 @@ function addErrorForExpression(model: ModelGeneric, expr: jsep.Expression, messa
     }
 }
 
-function addErrorForKey(model: ModelGeneric, key: ModelErrorKey, message: string) {
+function addErrorForKey(
+    model: ModelGeneric,
+    key: ModelErrorKey,
+    message: string
+) {
     const errors = getErrors(model);
     const errorKey = getKey(key);
     const forKey = errors[errorKey] || Vue.set(errors, errorKey, []);
