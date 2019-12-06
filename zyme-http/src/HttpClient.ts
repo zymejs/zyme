@@ -44,6 +44,12 @@ export class HttpClient {
         });
     }
 
+    public post<T>(request: HttpRequest): HttpPromise {
+        return this.makeRequest(request, {
+            method: 'POST'
+        });
+    }
+
     public postJson<T>(request: HttpPostJsonRequest<T>): HttpPromise {
         return this.makeRequest(request, {
             method: 'POST',
@@ -70,7 +76,9 @@ export class HttpClient {
 
         const handleResponse = this.handleResponse;
         if (handleResponse) {
-            promise = promise.then(response => handleResponse(request, response));
+            promise = promise.then(response =>
+                handleResponse(request, response)
+            );
         }
 
         const httpPromise = promise as HttpPromise;
