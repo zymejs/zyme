@@ -1,8 +1,7 @@
 import Vue, {
     CreateElement,
     FunctionalComponentOptions,
-    RenderContext,
-    VNode
+    RenderContext
 } from 'vue';
 
 const state = Vue.observable({ width: 0 });
