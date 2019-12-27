@@ -2,11 +2,11 @@ import Vue from 'vue';
 
 import { Modal } from './Modal';
 
-export type ModalData<TModal extends Modal<any, any>> = TModal extends Modal<infer TProps, any>
+export type ModalData<T extends Modal<any, any>> = T extends Modal<infer TProps, any>
     ? TProps
     : never;
 
-export type ModalResult<TModal extends Modal<any, any>> = TModal extends Modal<any, infer TResult>
+export type ModalResult<T extends Modal<any, any>> = T extends Modal<any, infer TResult>
     ? TResult
     : never;
 
@@ -14,8 +14,10 @@ type ModalDataWrapper<TModal extends Modal<any, any>> = ModalData<TModal> extend
     ? {}
     : { data: ModalData<TModal> };
 
+type ModalComponent<TModal> = new (...args: any[]) => TModal;
+
 interface ModalOptionsBase<TModal extends Modal<any, any>> {
-    component: new (...args: any[]) => TModal;
+    component: ModalComponent<TModal> | (() => Promise<ModalComponent<TModal>>);
     parent: Vue;
 }
 
