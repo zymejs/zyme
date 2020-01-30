@@ -17,14 +17,18 @@ export abstract class InputComponent<TValue = any> extends FormElement {
     @Prop()
     protected readonly modelKey: string | number | undefined;
 
-    public get inputValue(): TValue | undefined {
+    public get inputValue(): TValue | null {
         const model = this.formModel;
         const modelKey = this.modelKey;
         if (modelKey && model) {
             return model[modelKey];
         }
 
-        return this.value;
+        return this.value ?? null;
+    }
+
+    public set inputValue(value: TValue | null) {
+        this.input(value ?? null);
     }
 
     public input(value: TValue | null) {
