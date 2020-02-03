@@ -7,11 +7,9 @@ import { FormComponent } from './FormComponent';
 import { ModelContext } from './ModelContext';
 
 @Component()
-export abstract class FormElement<
-    TModel extends ModelGeneric = ModelGeneric
-> extends Vue {
-    protected model?: TModel | undefined | null;
-    protected modelKey?: string | number | undefined;
+export abstract class FormElement<TModel extends ModelGeneric = ModelGeneric> extends Vue {
+    protected readonly model?: TModel | undefined | null;
+    protected readonly modelKey?: string | number | undefined;
 
     @IocInject({ optional: true })
     protected readonly modelContext?: ModelContext;
@@ -25,9 +23,7 @@ export abstract class FormElement<
             return undefined;
         }
 
-        return (
-            model || (this.modelContext && (this.modelContext.model as TModel))
-        );
+        return model || (this.modelContext && (this.modelContext.model as TModel));
     }
 
     public get errors(): string[] {

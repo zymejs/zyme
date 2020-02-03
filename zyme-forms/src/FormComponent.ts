@@ -5,9 +5,7 @@ import { Model, ModelGeneric } from './Model';
 import { ModelContext } from './ModelContext';
 
 @Component()
-export abstract class FormComponent<
-    TModel extends Model = ModelGeneric
-> extends Vue {
+export abstract class FormComponent<TModel extends Model = ModelGeneric> extends Vue {
     @Prop({ type: [Object, Array] })
     public readonly value!: TModel;
 
@@ -20,9 +18,7 @@ export abstract class FormComponent<
     }
 
     @IocProvide()
-    protected modelContext: ModelContext<TModel> = new ModelContext(
-        () => this.value
-    );
+    protected readonly modelContext: ModelContext<TModel> = new ModelContext(() => this.value);
 
     public get busy(): boolean {
         return this.pendingSubmit != null;
