@@ -21,6 +21,7 @@ interface IocProvideOptions {
 declare module 'vue/types/options' {
     interface ComponentOptions<V extends Vue> {
         container?: Container;
+        iocRegister?: Array<(container: Container) => void>;
         iocProvide?: { [prop: string]: IocProvideOptions };
         iocInject?: { [prop: string]: IocInjectOptions };
     }
