@@ -1,11 +1,11 @@
 import Vue from 'vue';
 
-const containerSymbol = Symbol('zyme:ioc-container');
+import { IocContainer } from './container';
 
 export function IocPlugin(vue: typeof Vue) {
     Object.defineProperty(vue.prototype, '$container', {
         get() {
-            return this[containerSymbol];
+            return this[IocContainer.symbol];
         }
     });
 
@@ -16,6 +16,9 @@ export function IocPlugin(vue: typeof Vue) {
     vue.config.optionMergeStrategies.iocProvide = iocOptionMerge;
 
     vue.mixin({
+        provide(this: Vue) {
+            return { [IocContainer.symbol]: () => this.$container };
+        },
         created(this: Vue) {
             // takes container that is specified in options
             let container = this.$options.container;
@@ -47,7 +50,7 @@ export function IocPlugin(vue: typeof Vue) {
                 container = container.createChild();
             }
 
-            (this as any)[containerSymbol] = container;
+            (this as any)[IocContainer.symbol] = container;
 
             // configure provided values
             if (provides) {
