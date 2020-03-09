@@ -4,22 +4,19 @@ type PropOptionsPartial<T> = Omit<PropOptions<T>, 'required' | 'type'>;
 type PropOptionsRequired<T> = PropOptions<T, true> & { required: true };
 type PropOptionsOptional<T> = PropOptions<T, false> & { required: false };
 
-export function prop<T extends object>(): PropBuilder<T>;
-export function prop<T extends any[]>(type: PropType<T>): PropBuilder<T>;
-export function prop<T>(type: PropType<T>): PropBuilder<T>;
 export function prop<T>(type?: PropType<T>): PropBuilder<T> {
     return {
         optional(opts) {
             return {
                 ...opts,
-                type: type ?? Object,
+                type: type,
                 required: false
             };
         },
         required(opts) {
             return {
                 ...opts,
-                type: type ?? Object,
+                type: type,
                 required: true
             };
         }

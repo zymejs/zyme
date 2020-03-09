@@ -1,4 +1,12 @@
-import { getCurrentInstance, computed, PropType, ref, provide, inject } from '@vue/composition-api';
+import {
+    getCurrentInstance,
+    computed,
+    PropType,
+    ref,
+    provide,
+    inject,
+    Ref
+} from '@vue/composition-api';
 
 import { FormField } from './types';
 import { prop, reactive } from '../composition';
@@ -17,11 +25,13 @@ export function useInputProps<T>(type: PropType<T>) {
         label: prop(String).optional(),
         field: prop<FormField<T>>().optional(),
         value: prop(type).optional(),
-        disabled: prop(Boolean).optional()
+        disabled: prop(Boolean).optional(),
+        tabindex: prop(Number).optional(),
+        autofocus: prop(Boolean).optional()
     };
 }
 
-export function useInput<T>(props: FieldProps<T>) {
+export function useInput<T>(props: FieldProps<T>, element?: Ref<HTMLElement | null>) {
     const instance = getCurrentInstance();
     if (!instance) {
         throw new Error('No Vue instance found!');
@@ -38,7 +48,6 @@ export function useInput<T>(props: FieldProps<T>) {
 
     const disabled = computed(() => props.disabled ?? false);
     const name = computed(() => props.field?.$name ?? null);
-    const element = ref<HTMLElement>(null);
     const errors = computed(() => props.field?.$errors ?? []);
     const hasErrors = computed(() => errors.value.length > 0);
     const label = computed(() => props.label);
@@ -48,7 +57,6 @@ export function useInput<T>(props: FieldProps<T>) {
         value,
         name,
         disabled,
-        element,
         errors,
         hasErrors,
 
