@@ -1,9 +1,9 @@
 import jsepParse, * as jsep from 'jsep';
 
-import { FormField, FormModelError, FormModelErrorKey } from './types';
+import { FormField, FormError, FormModelErrorKey } from './types';
 import { clearErrors } from './clearErrors';
 
-export function setErrors<T>(field: FormField<T>, errors: FormModelError[]) {
+export function setErrors<T>(field: FormField<T>, errors: FormError[]) {
     clearErrors(field);
 
     if (errors && errors.length) {
