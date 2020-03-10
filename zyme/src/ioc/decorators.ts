@@ -8,8 +8,10 @@ import Vue, { ComponentOptions } from 'vue';
 
 import * as decorators from '../vuts/decorators';
 import * as reflection from '../vuts/reflection';
+import { IocContainer } from './container';
 
 export type IocInjectOptions = Defined<ComponentOptions<Vue>['iocInject']>[''];
+export type IocRegisterOptions = Defined<ComponentOptions<Vue>['iocRegister']>;
 export type IocProvideOptions = Defined<ComponentOptions<Vue>['iocProvide']>[''];
 
 export interface InjectConfig<T> {
@@ -70,6 +72,24 @@ export function IocInject<T>(
             }
         }
     };
+}
+
+export function IocRegister(
+    target: object,
+    propertyKey: string | symbol,
+    descriptor: TypedPropertyDescriptor<(container: IocContainer) => void>
+) {
+    reflection.addDecorator(target, o => {
+        if (!descriptor.value) {
+            return;
+        }
+
+        if (!o.iocRegister) {
+            o.iocRegister = [];
+        }
+
+        o.iocRegister.push(descriptor.value);
+    });
 }
 
 export function IocProvide<T>(config?: ProvideConfig<T>): PropertyDecorator;

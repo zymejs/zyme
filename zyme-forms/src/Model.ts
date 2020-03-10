@@ -156,6 +156,20 @@ function addErrorForExpression(
 
             return;
         }
+
+        // expression like ['foo'] are treated as arrays by jsep
+        case 'ArrayExpression': {
+            const arrayExpr = expr as jsep.ArrayExpression;
+            const indexExpr = arrayExpr.elements[0];
+            if (indexExpr?.type === 'Literal') {
+                const indexLiteral = indexExpr as jsep.Literal;
+                const indexValue = indexLiteral.value?.toString();
+
+                addErrorForKey(model, indexValue, message);
+            }
+
+            return;
+        }
     }
 }
 

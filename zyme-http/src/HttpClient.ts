@@ -24,6 +24,10 @@ export interface HttpPostJsonRequest<T = {}> extends HttpPostRequest {
     body: T;
 }
 
+export interface HttpUploadFilesRequest extends HttpPostRequest {
+    files: FileList;
+}
+
 export type HttpPromise = Promise<HttpResponse> & { cancel(): void };
 
 export interface HttpResponse extends Response {
@@ -57,6 +61,20 @@ export class HttpClient {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(request.body)
+        });
+    }
+
+    public uploadFiles(request: HttpUploadFilesRequest): HttpPromise {
+        let formData = new FormData();
+        // tslint:disable-next-line: prefer-for-of
+        for (let i = 0; i < request.files.length; i++) {
+            let file = request.files[i];
+            formData.append('files[]', file, file.name);
+        }
+
+        return this.makeRequest(request, {
+            method: 'POST',
+            body: formData
         });
     }
 
