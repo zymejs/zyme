@@ -13,6 +13,7 @@
     "dependencies": {
         "@types/vue-router": "^2.0.0",
         "@vue/composition-api": "^0.4.0",
+        "axios": "^0.19.2",
         "inversify": "~5.0.1",
         "lodash-es": "~4.17.11",
         "reflect-metadata": "~0.1.13",
