@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import { IocRegisterOptions } from './decorators';
 import { IocContainer } from './container';
+import { getContainer } from './getContainer';
 
 export function IocPlugin(vue: typeof Vue) {
     vue.directive('ioc-container', {});
@@ -11,31 +12,10 @@ export function IocPlugin(vue: typeof Vue) {
     vue.config.optionMergeStrategies.iocRegister = iocRegisterMerge;
 
     vue.mixin({
-        provide(this: Vue) {
-            return { [IocContainer.symbol]: () => this.$container };
-        },
         created(this: Vue) {
             const options = this.$options;
 
-            // takes container that is specified in options
-            let container = options.container;
-
-            // try get container provided by directive
-            if (!container) {
-                let vnode = this.$vnode;
-                let directives = vnode && vnode.data && vnode.data.directives;
-                if (directives) {
-                    let directive = directives.find(d => d.name === 'ioc-container');
-                    container = directive && directive.value;
-                }
-            }
-
-            // try get container from parent or prototype
-            if (!container) {
-                container = (this.$parent && this.$parent.$container) || this.$container;
-            }
-
-            // no container found - nothing to do here
+            let container = getContainer(this);
             if (!container) {
                 return;
             }
@@ -50,12 +30,12 @@ export function IocPlugin(vue: typeof Vue) {
                 container = container.createChild();
             }
 
-            (this as any)[IocContainer.symbol] = container;
+            (this as Writable<Vue>).$container = container;
 
             // configure register services
             if (iocRegister) {
                 for (const register of iocRegister) {
-                    register(container);
+                    register.call(this, container);
                 }
             }
 

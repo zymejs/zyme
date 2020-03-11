@@ -1,8 +1,7 @@
+import { reactive } from '@vue/composition-api';
 import { Container as InversifyContainer } from 'inversify';
 
 export class IocContainer extends InversifyContainer {
-    public static readonly symbol = Symbol('iocContainer');
-
     constructor() {
         super();
 

@@ -47,7 +47,7 @@ export interface FormPart<T = unknown> {
      * Form model for this part.
      * Can be read end written to.
      */
-    readonly model: Ref<T>;
+    readonly model: T;
 
     /** Full path to the form part */
     readonly path: string;
@@ -107,13 +107,15 @@ export interface Form<T = unknown> {
     readonly errors: ReadonlyArray<FormError>;
 
     /** Reactive collection of form components registered in the form */
-    readonly parts: ReadonlyArray<FormPart>;
+    readonly parts: Dictionary<FormPart[]>;
 
     /** Clears all errors in the form */
     clearErrors(): void;
 
     /** Sets errors for the form */
     setErrors(errors: FormError[]): void;
+
+    createContext(): FormContext<T>;
 }
 
 export type FormModelErrorKey = string | null | undefined | number;

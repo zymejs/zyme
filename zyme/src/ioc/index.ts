@@ -1,5 +1,5 @@
 export * from './container';
 export * from './decorators';
-export * from './modularity';
+export * from './composition';
 
 export { injectable as Injectable } from 'inversify';

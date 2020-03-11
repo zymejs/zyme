@@ -1,5 +1,4 @@
 export * from './prop';
-export * from './ioc';
 export * from './router';
 
 import { reactive as reactiveImport } from '@vue/composition-api';
