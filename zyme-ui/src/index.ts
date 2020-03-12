@@ -1,4 +1,5 @@
-export * from './ResponsiveContent';
+export * from './responsive';
+
 export * from './UiWebPlugin';
 
 export * from './modals';

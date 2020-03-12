@@ -1,11 +1,6 @@
-import Vue, {
-    CreateElement,
-    FunctionalComponentOptions,
-    RenderContext
-} from 'vue';
+import { CreateElement, FunctionalComponentOptions, RenderContext } from 'vue';
 
-const state = Vue.observable({ width: 0 });
-let initialized = false;
+import { useWindowSize } from './useWindowSize';
 
 export interface ResponsiveContentConfig {
     breakpoints: { [name: string]: number };
@@ -20,14 +15,7 @@ export function ResponsiveContent(
         functional: true,
         name: 'Responsive',
         render(h: CreateElement, context: RenderContext<any>) {
-            if (!initialized) {
-                window.addEventListener('resize', () => {
-                    state.width = window.innerWidth;
-                });
-                state.width = window.innerWidth;
-            }
-
-            let width = state.width;
+            let width = useWindowSize().width;
 
             let currentSlotName: string | undefined;
             let currentSlotBreakpoint = 0;
