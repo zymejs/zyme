@@ -1,8 +1,8 @@
-import { Ref, watch, isRef, reactive } from '@vue/composition-api';
+import { Ref, watch, isRef, reactive, ref } from '@vue/composition-api';
 import axios, { CancelTokenSource } from 'axios';
 import debounce from 'lodash-es/debounce';
 
-import {} from '../composition';
+import { unref } from '../composition';
 import { ApiEndpoint } from './apiEndpoint';
 import { callEndpoint } from './callEndpoint';
 import { injectApiInterceptor } from './apiInterceptor';
@@ -18,6 +18,12 @@ export interface DataSourceOptions<T, TResult> {
 
     /** Number of milliseconds to debounce api calls */
     debounce?: number;
+
+    /** Data will be loaded into this ref. Optional. */
+    data?: Ref<TResult | null>;
+
+    /** Loading flag will be updated into this ref. Optional. */
+    loading?: Ref<boolean>;
 }
 
 export interface DataSource<T> {
@@ -33,9 +39,14 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
     let pendingCancel: CancelTokenSource | undefined;
     let pendingPromise: Promise<TResult> | undefined;
 
+    const dataRef = opts.data ?? ref<TResult>(null);
+    const loadingRef = opts.loading ?? ref<boolean>(false);
+
+    loadingRef.value = false;
+
     const dataSource = reactive({
-        data: null as TResult | null,
-        loading: false,
+        data: unref(dataRef),
+        loading: unref(loadingRef),
         reload() {
             if (isRef(opts.request)) {
                 return loadData(opts.request.value);
@@ -51,7 +62,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
         trailing: true
     });
 
-    watch(opts.request, debouncedLoad);
+    watch(opts.request, debouncedLoad, { deep: true });
 
     return dataSource as DataSource<TResult>;
 

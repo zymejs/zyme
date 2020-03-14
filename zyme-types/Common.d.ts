@@ -36,4 +36,14 @@ declare global {
     type AsyncFunctionResult<T> = PromiseResult<FunctionResult<T>>;
 
     type InstanceOf<T> = T extends PrimitiveConstructor<infer X> ? X : never;
+
+    type PropertyNames<T> = {
+        // tslint:disable-next-line: ban-types
+        [K in keyof T]: T[K] extends Function ? never : K;
+    }[keyof T];
+
+    /** Only properties of the object, without functions */
+    type Properties<T> = {
+        [K in PropertyNames<T>]: T[K];
+    };
 }
