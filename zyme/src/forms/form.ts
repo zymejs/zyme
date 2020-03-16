@@ -22,10 +22,14 @@ export class Form<T = unknown> {
     public readonly busy = false;
 
     /** Clears all errors in the form */
-    public clearErrors(): void {}
+    public clearErrors(): void {
+        //
+    }
 
     /** Sets errors for the form */
-    public setErrors(errors: FormError[]): void {}
+    public setErrors(errors: FormError[]): void {
+        //
+    }
 
     public createContext(): FormContext<T> {
         return new FormContext({

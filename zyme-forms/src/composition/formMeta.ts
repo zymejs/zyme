@@ -1,14 +1,14 @@
 import { reactive } from 'zyme';
 
-import { FormModel } from './formModel';
+import { FormError } from './formErrors';
 
 const modelMetadataSymbol = Symbol('FormModelMetadata');
 
 export interface FormModelMetadata {
-    errors: { [key: string]: string[] };
+    errors: { [key: string]: FormError[] };
 }
 
-export function getMeta<T>(model: FormModel<T>) {
+export function getMeta(model: object) {
     model = model as any;
     let meta = (model as any)[modelMetadataSymbol] as FormModelMetadata | undefined;
     if (!meta) {

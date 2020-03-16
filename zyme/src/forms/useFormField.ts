@@ -1,14 +1,6 @@
-import {
-    getCurrentInstance,
-    computed,
-    PropType,
-    ref,
-    watch,
-    onUnmounted,
-    Ref
-} from '@vue/composition-api';
+import { computed, PropType, ref, watch, onUnmounted, Ref } from '@vue/composition-api';
 
-import { reactive, prop } from '../composition';
+import { reactive, prop, requireCurrentInstance } from '../composition';
 import { injectFormContext } from './useForm';
 import { FormPart } from './types';
 
@@ -27,10 +19,7 @@ export function useFormFieldProps<T>(type: PropType<T>) {
 }
 
 export function useFormField<T>(props: FieldProps<T>, element: Ref<HTMLElement | Vue | null>) {
-    const vm = getCurrentInstance();
-    if (!vm) {
-        throw new Error('Must be called in setup() function');
-    }
+    const vm = requireCurrentInstance();
 
     const formPart = useFormFieldPart(props, element);
 

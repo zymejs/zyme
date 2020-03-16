@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, CancelToken } from 'axios';
+import axios, { AxiosRequestConfig, CancelToken, AxiosError } from 'axios';
 
 import { ApiEndpoint, ApiUrl } from './apiEndpoint';
 import { ApiInterceptor } from './apiInterceptor';
@@ -35,16 +35,28 @@ export async function callEndpoint<TRequest, TResult>(ctx: ApiEndpointContext<TR
     }
 
     // run the request
-    const response = await axios.request(config);
 
-    // run response interceptors
-    if (ctx.interceptor.response) {
-        ctx.interceptor.response(response);
-    }
+    try {
+        const response = await axios.request(config);
 
-    // handle the response
-    if (ctx.endpoint.response) {
-        return ctx.endpoint.response(response);
+        // run response interceptors
+        if (ctx.interceptor.response) {
+            ctx.interceptor.response(response);
+        }
+
+        // handle the response
+        if (ctx.endpoint.response) {
+            return ctx.endpoint.response(response);
+        }
+    } catch (e) {
+        const axiosError = e as AxiosError;
+
+        // run response interceptors
+        if (axiosError.isAxiosError && axiosError.response && ctx.interceptor.response) {
+            ctx.interceptor.response(axiosError.response);
+        }
+
+        throw e;
     }
 
     return (undefined as unknown) as TResult;

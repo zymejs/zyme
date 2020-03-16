@@ -4,7 +4,7 @@ import { Component, IocProvide, Prop } from 'zyme';
 import { ModelContext } from './ModelContext';
 
 @Component()
-export class FormPart<TModel> extends Vue {
+export class FormPartz<TModel> extends Vue {
     @Prop({ type: [Object, Array], required: true })
     protected readonly model!: TModel;
 

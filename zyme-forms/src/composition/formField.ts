@@ -1,20 +1,29 @@
-import { computed, getCurrentInstance, PropType, ref, watch, Ref } from '@vue/composition-api';
-import { reactive, prop, unref } from 'zyme';
+import { computed, PropType, ref, watch, Ref } from '@vue/composition-api';
+import { reactive, prop, unref, requireCurrentInstance } from 'zyme';
 
 import { injectFormContext, FormContext } from './formContext';
+import { getMeta } from './formMeta';
 
-export interface FieldProps<T> {
-    field?: string | number | null;
+type FieldType = string | number | null | undefined;
+
+export interface FormPartProps {
+    field?: FieldType;
+    model?: object | any[];
+}
+
+export interface FormInputProps<T> extends FormPartProps {
     value?: T | null;
     disabled?: boolean | null;
 }
 
-export interface FormField<T = unknown> {
-    /** Form model for this part */
-    readonly value: T | null | undefined;
-
+export interface FormPart {
     /** Reactive collection of errors for this form part. */
     readonly errors: readonly string[];
+}
+
+export interface FormInput<T = unknown> extends FormPart {
+    /** Form model for this part */
+    readonly value: T | null | undefined;
 
     readonly disabled: boolean;
 
@@ -23,61 +32,131 @@ export interface FormField<T = unknown> {
     clearErrors(): void;
 }
 
-export interface FormFieldOptions<T, K extends keyof T> {
-    /** Field of the model for this part to be bound to */
-    readonly field: K;
+interface FormPartPropsOptions {
+    defaultField: string | null;
 }
 
-export function useFormFieldProps<T>(type: PropType<T>) {
+export function useFormPartProps(opts: FormPartPropsOptions) {
     return {
-        field: prop<string | number>([String, Number]).optional(),
+        field: prop<string | number>([String, Number]).optional({
+            default: opts.defaultField
+        }),
+        model: prop<object | any[]>().optional()
+    };
+}
+
+export function useFormInputProps<T>(type: PropType<T>) {
+    return {
+        ...useFormPartProps({ defaultField: null }),
         value: prop(type).optional(),
         disabled: prop(Boolean).optional()
     };
 }
 
-export function useFormField<T>(props: FieldProps<T>) {
-    const vm = getCurrentInstance();
-    if (!vm) {
-        throw new Error('Must be called in setup() function');
+export function useFormPart(props: FormPartProps) {
+    const formCtx = injectFormContext();
+    if (!formCtx) {
+        throw new Error('No form context found');
     }
 
-    const formCtx = injectFormContext<any>();
-    const fieldCtx = ref<FormContext<T>>(null);
+    const model = getModelRef(formCtx, props);
+    const errors = getErrorsForField(model, props);
+
+    return reactive<FormPart>({
+        errors: unref(errors)
+    });
+}
+
+export function useFormInput<T>(props: FormInputProps<T>) {
+    const vm = requireCurrentInstance();
+
+    const formCtx = injectFormContext();
 
     if (formCtx) {
-        watch(
-            () => props.field,
-            field => {
-                if (!field) {
-                    fieldCtx.value = null;
-                } else {
-                    fieldCtx.value = formCtx.createField(field);
+        const model = getModelRef(formCtx, props);
+        const value = getValueForField(model, props);
+        const errors = getErrorsForField(model, props);
+        const disabled = computed(() => props.disabled || formCtx.form.busy || false);
+
+        return reactive<FormInput<T>>({
+            value: unref(value),
+            errors: unref(errors),
+            disabled: unref(disabled),
+
+            input(v: T) {
+                vm.$emit('input', v);
+
+                if (props.value !== undefined) {
+                    return;
                 }
+
+                const modelValue = model.value;
+                const fieldValue = props.field;
+
+                if (modelValue != null && fieldValue != null) {
+                    (modelValue as any)[fieldValue] = v;
+                }
+            },
+
+            clearErrors() {
+                // TODO
             }
-        );
+        });
+    } else {
+        return reactive<FormInput<T>>({
+            value: unref(computed(() => props.value)),
+            errors: [],
+            disabled: unref(computed(() => props.disabled ?? false)),
+
+            input(v: T) {
+                vm.$emit('input', v);
+            },
+
+            clearErrors() {
+                // nothing without form context
+            }
+        });
     }
+}
 
-    const modelRef = computed(() => fieldCtx.value?.model ?? props.value);
-    const errorsRef = computed(() => fieldCtx.value?.errors ?? []);
-    const disabledRef = computed(() => props.disabled ?? false);
-
-    return reactive<FormField<T>>({
-        value: unref(modelRef),
-        errors: unref(errorsRef),
-        disabled: unref(disabledRef),
-
-        input(v: T) {
-            const field = fieldCtx.value;
-            if (field) {
-                field.model = v;
-            }
-
-            vm.$emit('input', v);
-        },
-
-        clearErrors() {
-            // TODO
+function getModelRef(formCtx: FormContext, props: FormPartProps) {
+    return computed(() => {
+        let model = props.model as any;
+        if (model === undefined) {
+            model = formCtx.form.model;
         }
+
+        return model;
+    });
+}
+
+function getValueForField<T>(model: Ref<object>, props: FormInputProps<T>): Ref<T | null> {
+    return computed(() => {
+        if (props.value !== undefined) {
+            return props.value;
+        }
+
+        const modelValue = model.value;
+        const fieldValue = props.field;
+
+        if (modelValue != null && fieldValue != null) {
+            return (modelValue as any)[fieldValue];
+        }
+    });
+}
+
+function getErrorsForField<T>(model: Ref<object>, props: FormInputProps<T>) {
+    return computed(() => {
+        const modelValue = model.value;
+        const fieldValue = props.field;
+
+        if (modelValue != null && fieldValue != null) {
+            const meta = getMeta(modelValue);
+            const errors = meta.errors[fieldValue.toString()] ?? [];
+
+            return errors.map(e => e.message);
+        }
+
+        return [] as string[];
     });
 }

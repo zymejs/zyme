@@ -16,10 +16,10 @@
         "zyme": "~1.0.0"
     },
     "devDependencies": {
-        "@types/jasmine": "~3.5.8",
+        "@types/jasmine": "~3.5.9",
         "@types/lodash-es": "~4.17.1",
         "karma": "~4.4.1",
-        "tslint": "~6.0.0",
+        "tslint": "~6.1.0",
         "typescript": "~3.8.3",
         "typescript-formatter": "~7.2.2",
         "zyme-tests": "~1.0.0"

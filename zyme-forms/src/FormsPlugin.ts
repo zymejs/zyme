@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-import { ValidationError } from './ValidationError';
+import { ValidationError } from './composition/formErrors';
 
 export function FormsPlugin(vue: typeof Vue) {
     const oldHandler = vue.config.errorHandler;
