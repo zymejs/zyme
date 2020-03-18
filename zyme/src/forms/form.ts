@@ -1,105 +1,132 @@
-import { Ref, computed, reactive, set } from '@vue/composition-api';
+import { set, Ref } from '@vue/composition-api';
 
-import { FormError, FormModel, FormPart, FormPartOptions } from './types';
-import { combinePaths, escapeFieldKey } from './helpers';
-import { unref, propRef } from '../composition';
+import { reactive } from '../core';
 import { writable } from '../utils';
 
-export class Form<T = unknown> {
-    constructor(model: FormModel<T>) {
-        this.model = model;
-    }
+import {
+    combineErrorExpressions,
+    normalizeErrorExpression,
+    normalizeErrorKey
+} from './formErrorExpression';
+import { FormError, ValidationError } from './formErrors';
+import { getMeta } from './formMeta';
+import { FormModel } from './formModel';
 
-    /** Form model */
-    public model: T;
+type FormSubmit<T, R> = (m: NonNullable<T>) => Promise<R>;
 
-    /** Reactive collection of all form errors */
-    public readonly errors: ReadonlyArray<FormError> = [];
+type FormModelInit<T> = {
+    [K in keyof FormModel<T>]: FormModelInit<T>[K] | Ref<FormModel<T>[K]>;
+};
 
-    /** Reactive collection of form components registered in the form */
-    readonly parts: Readonly<Dictionary<FormPart[]>> = {};
+let creatingForm = false;
 
-    public readonly busy = false;
-
-    /** Clears all errors in the form */
-    public clearErrors(): void {
-        //
-    }
-
-    /** Sets errors for the form */
-    public setErrors(errors: FormError[]): void {
-        //
-    }
-
-    public createContext(): FormContext<T> {
-        return new FormContext({
-            form: this,
-            model: computed({
-                get: () => this.model,
-                set: m => (this.model = m)
-            }),
-            parent: null,
-            path: ''
-        });
+export function createForm<T extends {}>(model: FormModelInit<T>): Form<T>;
+export function createForm<T extends {}>(model: null): Form<T | null>;
+export function createForm<T extends {} | null>(model: FormModelInit<T> | null): Form<T> {
+    try {
+        creatingForm = true;
+        const form = new Form(model as T);
+        return reactive(form as any) as Form<T>;
+    } finally {
+        creatingForm = false;
     }
 }
 
-export class FormContext<T = unknown> {
-    constructor(options: Properties<FormContext<T>>) {
-        this.model = options.model;
-        this.parent = options.parent;
-        this.form = options.form;
-        this.path = options.path;
-    }
-
-    /** Model for this form context */
-    public readonly model!: Ref<T>;
-
-    public readonly parent!: FormContext | null;
-
-    /** Form that is the root of this context */
-    public readonly form!: Form;
-
-    /** Current path for the form context */
-    public readonly path!: string;
-
-    /** Allows registering form part components in the form */
-    public registerPart<K extends keyof T>(options: FormPartOptions<T, K>): FormPart<T[K]> {
-        const key = options.field;
-        const form = this.form;
-        const path = combinePaths(this.path, escapeFieldKey(key.toString()));
-        const field = propRef(this.model, key);
-        const disabled = propRef(this.form, 'busy');
-
-        const partsDict = form.parts as Dictionary<FormPart[]>;
-        let partsArray = partsDict[path];
-        if (!partsArray) {
-            partsArray = [];
-            set(partsDict, path, partsArray);
+export class Form<T = unknown> {
+    constructor(model: T) {
+        if (!creatingForm) {
+            throw new Error(`Use createForm() function instead of constructor.`);
         }
 
-        const formPart = reactive<FormPart<T[K]>>({
-            model: writable(unref(field)),
-            element: unref(options.element),
-            path: path,
-            errors: [],
-            disabled: unref(disabled),
-            remove() {
-                const index = partsArray.indexOf(this);
-                partsArray.splice(index, 1);
-
-                // remove array of parts from the dictionary
-                if (!partsArray.length) {
-                    set(partsDict, key, null);
-                }
-            },
-            clearErrors() {
-                // TODO
-            }
-        }) as FormPart<T[K]>;
-
-        partsArray.push(formPart);
-
-        return formPart;
+        this.model = model;
     }
+
+    public model: T;
+    public readonly busy: boolean = false;
+    public readonly errors: readonly FormError[] = [];
+
+    public async submit<R>(action: FormSubmit<T, R>): Promise<R> {
+        const model = this.model;
+        if (model == null) {
+            throw new Error('No model is set to submit');
+        }
+        try {
+            writable(this).busy = true;
+
+            const result = await action(model as NonNullable<T>);
+            this.clearErrors();
+
+            return result;
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                this.setErrors(error.errors);
+            }
+            throw error;
+        } finally {
+            writable(this).busy = false;
+        }
+    }
+
+    public setErrors(errors: FormError[]) {
+        const currentErrors = writable(this.errors);
+        currentErrors.length = 0;
+
+        for (const error of errors) {
+            currentErrors.push({
+                key: normalizeErrorExpression(error.key),
+                message: error.message
+            });
+        }
+
+        this.propagateErrors();
+    }
+
+    public clearErrors() {
+        writable(this.errors).length = 0;
+        this.propagateErrors();
+    }
+
+    private propagateErrors() {
+        propagateErrors('', this.model, this.errors);
+    }
+}
+
+function propagateErrors<T>(prefix: string, model: T | null, errors: readonly FormError[]) {
+    if (!model || typeof model === 'string') {
+        return;
+    }
+
+    if (Array.isArray(model)) {
+        const meta = getMeta(model);
+
+        set(meta.errors, '', getErrorsForExpr(errors, prefix));
+
+        for (let i = 0; i < model.length; i++) {
+            const key = i.toString();
+            const expr = combineErrorExpressions(prefix, key);
+            const propErrors = getErrorsForExpr(errors, expr);
+
+            set(meta.errors, key, propErrors);
+
+            propagateErrors(expr, model[i], errors);
+        }
+    } else if (model instanceof Object) {
+        const meta = getMeta(model as any);
+
+        set(meta.errors, '', getErrorsForExpr(errors, prefix));
+
+        for (const prop of Object.keys(model)) {
+            const value = (model as any)[prop];
+            const key = normalizeErrorKey(prop);
+            const expr = combineErrorExpressions(prefix, key);
+            const propErrors = getErrorsForExpr(errors, expr);
+
+            set(meta.errors, prop, propErrors);
+
+            propagateErrors(expr, value, errors);
+        }
+    }
+}
+function getErrorsForExpr(errors: readonly FormError[], expr: string) {
+    return errors.filter(e => e.key === expr);
 }

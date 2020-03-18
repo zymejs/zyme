@@ -6,4 +6,3 @@ export * from './FormElement';
 export * from './FormPart';
 export * from './InputComponent';
 export * from './FormsPlugin';
-export * from './composition';

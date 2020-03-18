@@ -1,5 +1,6 @@
-import { computed, PropType, ref, watch, Ref } from '@vue/composition-api';
-import { reactive, prop, unref, requireCurrentInstance } from 'zyme';
+import { computed, ref, set, PropType, Ref } from '@vue/composition-api';
+
+import { prop, reactive, requireCurrentInstance, unref } from '../core';
 
 import { injectFormContext, FormContext } from './formContext';
 import { getMeta } from './formMeta';
@@ -11,7 +12,7 @@ export interface FormPartProps {
     model?: object | any[];
 }
 
-export interface FormInputProps<T> extends FormPartProps {
+export interface FormFieldProps<T> extends FormPartProps {
     value?: T | null;
     disabled?: boolean | null;
 }
@@ -21,11 +22,11 @@ export interface FormPart {
     readonly errors: readonly string[];
 }
 
-export interface FormInput<T = unknown> extends FormPart {
+export interface FormField<T = unknown> extends FormPart {
     /** Form model for this part */
-    readonly value: T | null | undefined;
+    readonly value: Readonly<T | null | undefined>;
 
-    readonly disabled: boolean;
+    readonly disabled: Readonly<boolean>;
 
     input(value: T | null | undefined): void;
 
@@ -45,7 +46,7 @@ export function useFormPartProps(opts: FormPartPropsOptions) {
     };
 }
 
-export function useFormInputProps<T>(type: PropType<T>) {
+export function useFormFieldProps<T>(type?: PropType<T>) {
     return {
         ...useFormPartProps({ defaultField: null }),
         value: prop(type).optional(),
@@ -53,7 +54,7 @@ export function useFormInputProps<T>(type: PropType<T>) {
     };
 }
 
-export function useFormPart(props: FormPartProps) {
+export function useFormPart(props: FormPartProps): FormPart {
     const formCtx = injectFormContext();
     if (!formCtx) {
         throw new Error('No form context found');
@@ -67,7 +68,7 @@ export function useFormPart(props: FormPartProps) {
     });
 }
 
-export function useFormInput<T>(props: FormInputProps<T>) {
+export function useFormField<T>(props: FormFieldProps<T>): FormField<T> {
     const vm = requireCurrentInstance();
 
     const formCtx = injectFormContext();
@@ -78,10 +79,10 @@ export function useFormInput<T>(props: FormInputProps<T>) {
         const errors = getErrorsForField(model, props);
         const disabled = computed(() => props.disabled || formCtx.form.busy || false);
 
-        return reactive<FormInput<T>>({
-            value: unref(value),
-            errors: unref(errors),
-            disabled: unref(disabled),
+        const field = reactive({
+            value: value,
+            errors: errors,
+            disabled: disabled,
 
             input(v: T) {
                 vm.$emit('input', v);
@@ -94,7 +95,7 @@ export function useFormInput<T>(props: FormInputProps<T>) {
                 const fieldValue = props.field;
 
                 if (modelValue != null && fieldValue != null) {
-                    (modelValue as any)[fieldValue] = v;
+                    set(modelValue, fieldValue, v);
                 }
             },
 
@@ -102,11 +103,17 @@ export function useFormInput<T>(props: FormInputProps<T>) {
                 // TODO
             }
         });
+
+        return field as FormField<T>;
     } else {
-        return reactive<FormInput<T>>({
-            value: unref(computed(() => props.value)),
-            errors: [],
-            disabled: unref(computed(() => props.disabled ?? false)),
+        const value = computed(() => props.value ?? null);
+        const errors = ref<string[]>([]);
+        const disabled = computed(() => props.disabled || false);
+
+        const field = reactive({
+            value: value,
+            errors: errors,
+            disabled: disabled,
 
             input(v: T) {
                 vm.$emit('input', v);
@@ -116,6 +123,8 @@ export function useFormInput<T>(props: FormInputProps<T>) {
                 // nothing without form context
             }
         });
+
+        return field as FormField<T>;
     }
 }
 
@@ -130,7 +139,7 @@ function getModelRef(formCtx: FormContext, props: FormPartProps) {
     });
 }
 
-function getValueForField<T>(model: Ref<object>, props: FormInputProps<T>): Ref<T | null> {
+function getValueForField<T>(model: Ref<object>, props: FormFieldProps<T>): Ref<T | null> {
     return computed(() => {
         if (props.value !== undefined) {
             return props.value;
@@ -145,7 +154,7 @@ function getValueForField<T>(model: Ref<object>, props: FormInputProps<T>): Ref<
     });
 }
 
-function getErrorsForField<T>(model: Ref<object>, props: FormInputProps<T>) {
+function getErrorsForField<T>(model: Ref<object>, props: FormFieldProps<T>) {
     return computed(() => {
         const modelValue = model.value;
         const fieldValue = props.field;

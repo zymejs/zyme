@@ -1,4 +1,4 @@
-import { reactive } from 'zyme';
+import { reactive } from '@vue/composition-api';
 
 import { FormError } from './formErrors';
 

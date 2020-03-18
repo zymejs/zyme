@@ -5,6 +5,6 @@ export class ValidationError extends Error {
 }
 
 export interface FormError {
-    key: string;
-    message: string;
+    readonly key: string;
+    readonly message: string;
 }

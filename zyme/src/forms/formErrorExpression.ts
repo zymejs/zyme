@@ -14,7 +14,15 @@ export function normalizeErrorExpression(key: string | null | undefined) {
 export function normalizeErrorKey(key: string | number | boolean | null | undefined) {
     key = key?.toString() ?? '';
 
-    return key.replace('\\', '\\\\').replace('.', '\\_');
+    return (
+        key
+            // escape the escape char to avoid ambiguity
+            .replace('\\', '\\\\')
+            // escape dot, because we use it as separator
+            .replace('.', '\\_')
+            // make it lowercase so it's compatible with PascalCase backend
+            .toLowerCase()
+    );
 }
 
 export function combineErrorExpressions(first: string | null, second: string | null) {
@@ -47,7 +55,7 @@ function flattenExpression(expr: jsep.Expression): string {
         // this matches expressions like foo, because jsep assumes its accessing some variable
         case 'Identifier': {
             const identifier = expr as jsep.Identifier;
-            return identifier.name;
+            return normalizeErrorKey(identifier.name);
         }
 
         // expression like ['foo'] are treated as arrays by jsep

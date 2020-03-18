@@ -1,4 +1,4 @@
-import { PropType, PropOptions } from '@vue/composition-api';
+import { PropOptions, PropType } from '@vue/composition-api';
 
 type PropOptionsPartial<T> = Omit<PropOptions<T>, 'required' | 'type'>;
 type PropOptionsRequired<T> = PropOptions<T, true> & { required: true };

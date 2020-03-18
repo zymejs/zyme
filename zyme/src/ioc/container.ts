@@ -1,4 +1,3 @@
-import { reactive } from '@vue/composition-api';
 import { Container as InversifyContainer } from 'inversify';
 
 export class IocContainer extends InversifyContainer {
@@ -11,7 +10,7 @@ export class IocContainer extends InversifyContainer {
     public /* override */ createChild() {
         // we override this method to preserve proper
         // container type across all casesS
-        let child = new IocContainer();
+        const child = new IocContainer();
         child.parent = this;
         return child;
     }

@@ -4,7 +4,8 @@
         "lib": ["esnext", "dom"],
         "baseUrl": ".",
         "paths": {
-            "zyme": ["../zyme/src"]
+            "zyme": ["../zyme/src"],
+            "zyme/*": ["../zyme/src/*"]
         }
     },
     "include": ["./**/*.ts"]

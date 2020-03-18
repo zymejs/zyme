@@ -1,11 +1,11 @@
-import { Ref, watch, isRef, reactive, ref } from '@vue/composition-api';
+import { isRef, reactive, ref, watch, Ref } from '@vue/composition-api';
 import axios, { CancelTokenSource } from 'axios';
 import debounce from 'lodash-es/debounce';
 
-import { unref } from '../composition';
+import { unref } from '../core';
 import { ApiEndpoint } from './apiEndpoint';
-import { callEndpoint } from './callEndpoint';
 import { injectApiInterceptor } from './apiInterceptor';
+import { callEndpoint } from './callEndpoint';
 
 export interface DataSourceOptions<T, TResult> {
     endpoint: ApiEndpoint<T, TResult>;
@@ -79,7 +79,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
         }
 
         let promise: Promise<TResult> | undefined;
-        let cancel = axios.CancelToken.source();
+        const cancel = axios.CancelToken.source();
 
         try {
             promise = callEndpoint({
