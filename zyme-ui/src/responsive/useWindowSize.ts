@@ -1,4 +1,4 @@
-import { reactive } from '@vue/composition-api';
+import { reactive, ref } from '@vue/composition-api';
 
 interface WindowSize {
     width: number;
