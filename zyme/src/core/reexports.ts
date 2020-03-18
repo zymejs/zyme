@@ -1,6 +1,5 @@
 import { defineComponent } from '@vue/composition-api';
 export {
-    toRefs,
     ref,
     reactive,
     computed,

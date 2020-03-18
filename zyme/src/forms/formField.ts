@@ -1,6 +1,6 @@
 import { computed, ref, set, PropType, Ref } from '@vue/composition-api';
 
-import { prop, reactive, requireCurrentInstance, unref } from '../core';
+import { prop, reactive, requireCurrentInstance, unref, Refs, toRefs } from '../core';
 
 import { injectFormContext, FormContext } from './formContext';
 import { getMeta } from './formMeta';
@@ -8,13 +8,13 @@ import { getMeta } from './formMeta';
 type FieldType = string | number | null | undefined;
 
 export interface FormPartProps {
-    field?: FieldType;
+    field?: FieldType | null;
     model?: object | any[];
 }
 
 export interface FormFieldProps<T> extends FormPartProps {
-    value?: T | null;
-    disabled?: boolean | null;
+    value?: T | null | undefined;
+    disabled?: boolean;
 }
 
 export interface FormPart {
@@ -50,33 +50,37 @@ export function useFormFieldProps<T>(type?: PropType<T>) {
     return {
         ...useFormPartProps({ defaultField: null }),
         value: prop(type).optional(),
-        disabled: prop(Boolean).optional()
+        disabled: prop(Boolean).optional({
+            default: false
+        })
     };
 }
 
-export function useFormPart(props: FormPartProps): FormPart {
+export function useFormPart(props: FormPartProps | Refs<FormPartProps>): FormPart {
     const formCtx = injectFormContext();
     if (!formCtx) {
         throw new Error('No form context found');
     }
+    const propRefs = toRefs(props);
 
-    const model = getModelRef(formCtx, props);
-    const errors = getErrorsForField(model, props);
+    const model = getModelRef(formCtx, propRefs.model);
+    const errors = getErrorsForField(model, propRefs.field);
 
     return reactive<FormPart>({
         errors: unref(errors)
     });
 }
 
-export function useFormField<T>(props: FormFieldProps<T>): FormField<T> {
+export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T>>): FormField<T> {
     const vm = requireCurrentInstance();
 
     const formCtx = injectFormContext();
+    const propRefs = toRefs(props);
 
     if (formCtx) {
-        const model = getModelRef(formCtx, props);
-        const value = getValueForField(model, props);
-        const errors = getErrorsForField(model, props);
+        const model = getModelRef(formCtx, propRefs.model);
+        const value = getValueForField(propRefs.model, propRefs.value, propRefs.field);
+        const errors = getErrorsForField(model, propRefs.field);
         const disabled = computed(() => props.disabled || formCtx.form.busy || false);
 
         const field = reactive({
@@ -128,9 +132,13 @@ export function useFormField<T>(props: FormFieldProps<T>): FormField<T> {
     }
 }
 
-function getModelRef(formCtx: FormContext, props: FormPartProps) {
+function getModelRef(formCtx: FormContext, modelRef: Ref<any> | undefined): Readonly<Ref<any>> {
+    if (!modelRef) {
+        return ref(undefined);
+    }
+
     return computed(() => {
-        let model = props.model as any;
+        let model = modelRef.value;
         if (model === undefined) {
             model = formCtx.form.model;
         }
@@ -139,29 +147,40 @@ function getModelRef(formCtx: FormContext, props: FormPartProps) {
     });
 }
 
-function getValueForField<T>(model: Ref<object>, props: FormFieldProps<T>): Ref<T | null> {
+function getValueForField<T>(
+    modelRef: Ref<any> | undefined,
+    valueRef: Ref<any> | undefined,
+    fieldRef: Ref<any> | undefined
+): Ref<T | null> {
     return computed(() => {
-        if (props.value !== undefined) {
-            return props.value;
+        const value = valueRef?.value;
+        if (value !== undefined) {
+            return value;
         }
 
-        const modelValue = model.value;
-        const fieldValue = props.field;
+        const model = modelRef?.value;
+        const field = fieldRef?.value;
 
-        if (modelValue != null && fieldValue != null) {
-            return (modelValue as any)[fieldValue];
+        if (model != null && field != null) {
+            return model[field];
+        } else if (model != null) {
+            return model;
         }
     });
 }
 
-function getErrorsForField<T>(model: Ref<object>, props: FormFieldProps<T>) {
-    return computed(() => {
-        const modelValue = model.value;
-        const fieldValue = props.field;
+function getErrorsForField(modelRef: Ref<object> | undefined, fieldRef?: Ref<any> | undefined) {
+    if (!modelRef || !fieldRef) {
+        return ref<string[]>([]);
+    }
 
-        if (modelValue != null && fieldValue != null) {
-            const meta = getMeta(modelValue);
-            const errors = meta.errors[fieldValue.toString()] ?? [];
+    return computed(() => {
+        const model = modelRef.value;
+        const field = fieldRef.value;
+
+        if (model != null && field != null) {
+            const meta = getMeta(model);
+            const errors = meta.errors[field.toString()] ?? [];
 
             return errors.map(e => e.message);
         }
