@@ -52,7 +52,7 @@ export function useFormPartProps(opts: FormPartPropsOptions) {
 export function useFormFieldProps<T>(type?: PropType<T>) {
     return {
         ...useFormPartProps({ defaultField: null }),
-        value: prop(type).optional(),
+        value: prop(type).optional({ default: undefined }),
         disabled: prop(Boolean).optional({
             default: false
         })
