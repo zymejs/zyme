@@ -4,6 +4,7 @@ import { prop, reactive, requireCurrentInstance, unref, Refs, toRefs } from '../
 
 import { injectFormContext, FormContext } from './formContext';
 import { getMeta } from './formMeta';
+import { normalizeErrorKey } from './formErrorExpression';
 
 type FieldType = string | number | null | undefined;
 
@@ -25,6 +26,8 @@ export interface FormPart {
 export interface FormField<T = unknown> extends FormPart {
     /** Form model for this part */
     readonly value: Readonly<T | null | undefined>;
+
+    readonly model: object | any[] | null;
 
     readonly disabled: Readonly<boolean>;
 
@@ -79,12 +82,13 @@ export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T
 
     if (formCtx) {
         const model = getModelRef(formCtx, propRefs.model);
-        const value = getValueForField(propRefs.model, propRefs.value, propRefs.field);
+        const value = getValueForField(model, propRefs.value, propRefs.field);
         const errors = getErrorsForField(model, propRefs.field);
         const disabled = computed(() => props.disabled || formCtx.form.busy || false);
 
         const field = reactive({
             value: value,
+            model: model,
             errors: errors,
             disabled: disabled,
 
@@ -116,6 +120,7 @@ export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T
 
         const field = reactive({
             value: value,
+            model: null,
             errors: errors,
             disabled: disabled,
 
@@ -133,12 +138,14 @@ export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T
 }
 
 function getModelRef(formCtx: FormContext, modelRef: Ref<any> | undefined): Readonly<Ref<any>> {
-    if (!modelRef) {
+    // if no model is passed via props and no form is defined
+    // there is no option there will be a model afterwards
+    if (!modelRef && !formCtx) {
         return ref(undefined);
     }
 
     return computed(() => {
-        let model = modelRef.value;
+        let model = modelRef?.value;
         if (model === undefined) {
             model = formCtx.form.model;
         }
@@ -180,7 +187,9 @@ function getErrorsForField(modelRef: Ref<object> | undefined, fieldRef?: Ref<any
 
         if (model != null && field != null) {
             const meta = getMeta(model);
-            const errors = meta.errors[field.toString()] ?? [];
+            // all error keys are normalized
+            const fieldNormalized = normalizeErrorKey(field);
+            const errors = meta.errors[fieldNormalized] ?? [];
 
             return errors.map(e => e.message);
         }

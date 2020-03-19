@@ -9,7 +9,7 @@ import {
     normalizeErrorKey
 } from './formErrorExpression';
 import { FormError, ValidationError } from './formErrors';
-import { getMeta } from './formMeta';
+import { getMeta, FormModelMetadata } from './formMeta';
 import { FormModel } from './formModel';
 
 type FormSubmit<T, R> = (m: NonNullable<T>) => Promise<R>;
@@ -91,42 +91,81 @@ export class Form<T = unknown> {
     }
 }
 
-function propagateErrors<T>(prefix: string, model: T | null, errors: readonly FormError[]) {
-    if (!model || typeof model === 'string') {
+function propagateErrors<T>(expr: string, model: T | null, errors: readonly FormError[]) {
+    if (!isObjectModel(model)) {
         return;
     }
 
-    if (Array.isArray(model)) {
-        const meta = getMeta(model);
+    const errorsToPropagate: FormError[] = [];
 
-        set(meta.errors, '', getErrorsForExpr(errors, prefix));
+    // we use dot as a separator between expression parts
+    const prefix = expr ? expr + '.' : '';
 
-        for (let i = 0; i < model.length; i++) {
-            const key = i.toString();
-            const expr = combineErrorExpressions(prefix, key);
-            const propErrors = getErrorsForExpr(errors, expr);
+    const errorsForModel: FormModelMetadata['errors'] = {};
 
-            set(meta.errors, key, propErrors);
-
-            propagateErrors(expr, model[i], errors);
+    for (const error of errors) {
+        // ignore errors that does not match the prefix
+        if (error.key.startsWith(prefix) === false) {
+            continue;
         }
-    } else if (model instanceof Object) {
-        const meta = getMeta(model as any);
 
-        set(meta.errors, '', getErrorsForExpr(errors, prefix));
+        // trim the prefix
+        const keyWithoutPrefix = error.key.substr(prefix.length);
 
+        const propertyName = getFirstPropertyFromExpression(keyWithoutPrefix);
+
+        let errorsForProperty = errorsForModel[propertyName];
+        if (!errorsForProperty) {
+            errorsForModel[propertyName] = errorsForProperty = [];
+        }
+
+        // add this error to the property
+        errorsForProperty.push(error);
+
+        // add this error to propagate it further
+        errorsToPropagate.push(error);
+    }
+
+    // update errors for this model
+    getMeta(model).errors = errorsForModel;
+
+    if (Array.isArray(model)) {
+        // propagate errors for items of the array
+        for (let i = 0; i < model.length; i++) {
+            const propKey = i.toString();
+            const propExpr = combineErrorExpressions(expr, propKey);
+
+            propagateErrors(propExpr, model[i], errorsToPropagate);
+        }
+    } else {
+        // propagate errors for properties of the object
         for (const prop of Object.keys(model)) {
             const value = (model as any)[prop];
-            const key = normalizeErrorKey(prop);
-            const expr = combineErrorExpressions(prefix, key);
-            const propErrors = getErrorsForExpr(errors, expr);
+            const propKey = normalizeErrorKey(prop);
+            const propExpr = combineErrorExpressions(expr, propKey);
 
-            set(meta.errors, prop, propErrors);
-
-            propagateErrors(expr, value, errors);
+            propagateErrors(propExpr, value, errorsToPropagate);
         }
     }
 }
-function getErrorsForExpr(errors: readonly FormError[], expr: string) {
-    return errors.filter(e => e.key === expr);
+
+function isObjectModel(model: any): model is object {
+    return model != null && model instanceof Object;
+}
+
+function getFirstPropertyFromExpression(expr: string) {
+    if (!expr) {
+        // empty property means the root of the object
+        return '';
+    }
+
+    const nextDotIndex = expr.indexOf('.');
+
+    if (nextDotIndex > 0) {
+        // if there are more nested props, take only first
+        return expr.substr(0, nextDotIndex);
+    }
+
+    // if there is no more nested props, the whole expression is a prop
+    return expr;
 }
