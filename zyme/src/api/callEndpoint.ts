@@ -14,7 +14,8 @@ export async function callEndpoint<TRequest, TResult>(ctx: ApiEndpointContext<TR
     const config: AxiosRequestConfig = {
         method: ctx.endpoint.request.method,
         url: resolveUrl(ctx.endpoint.url, ctx.request),
-        cancelToken: ctx.cancel
+        cancelToken: ctx.cancel,
+        headers: {}
     };
 
     // add query params

@@ -20,7 +20,7 @@ export interface DataSourceOptions<T, TResult> {
     debounce?: number;
 
     /** Data will be loaded into this ref. Optional. */
-    data?: Ref<TResult | null>;
+    data?: ((result: TResult) => void) | Ref<TResult | null>;
 
     /** Loading flag will be updated into this ref. Optional. */
     loading?: Ref<boolean>;
@@ -39,7 +39,9 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
     let pendingCancel: CancelTokenSource | undefined;
     let pendingPromise: Promise<TResult> | undefined;
 
-    const dataRef = opts.data ?? ref<TResult>(null);
+    const dataRef = isRef(opts.data) ? opts.data : ref<TResult>(null);
+    const dataCallback = isRef(opts.data) ? null : opts.data;
+
     const loadingRef = opts.loading ?? ref<boolean>(false);
 
     loadingRef.value = false;
@@ -97,6 +99,9 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
             const result = await promise;
 
             dataSource.data = result;
+            if (dataCallback) {
+                dataCallback(result);
+            }
 
             return result;
         } finally {
