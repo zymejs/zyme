@@ -16,8 +16,13 @@ export interface DataSourceOptions<T, TResult> {
      */
     request: (() => T | null) | Readonly<Ref<T | null>>;
 
-    /** Number of milliseconds to debounce api calls */
-    debounce?: number;
+    /** Options for debouncing */
+    debounce?: {
+        /** Number of milliseconds to debounce api calls */
+        time?: number;
+        leading?: boolean;
+        trailing?: boolean;
+    };
 
     /** Data will be loaded into this ref. Optional. */
     data?: ((result: TResult) => void) | Ref<TResult | null>;
@@ -46,23 +51,19 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
 
     loadingRef.value = false;
 
+    const debounceTime = opts.debounce?.time ?? 300;
+    const debouncedLoad = debounce(loadData, debounceTime, {
+        leading: opts.debounce?.leading ?? true,
+        trailing: opts.debounce?.trailing ?? true
+    });
+
     const dataSource = reactive({
         data: unref(dataRef),
         loading: unref(loadingRef),
         reload() {
-            if (isRef(opts.request)) {
-                return loadData(opts.request.value);
-            } else {
-                return loadData(opts.request());
-            }
+            return debouncedLoad.flush();
         }
     }) as Writable<DataSource<TResult>>;
-
-    const debounceMs = opts.debounce || 200;
-    const debouncedLoad = debounce(loadData, debounceMs, {
-        leading: true,
-        trailing: true
-    });
 
     watch(opts.request, debouncedLoad, { deep: true });
 
