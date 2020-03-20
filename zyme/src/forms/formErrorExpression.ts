@@ -11,15 +11,19 @@ export function normalizeErrorExpression(key: string | null | undefined) {
     return result;
 }
 
+// use regex for replacing, because string.replace() replaces only first occurance
+const escapeCharRegex = /\\/g;
+const dotRegex = /\./g;
+
 export function normalizeErrorKey(key: string | number | boolean | null | undefined) {
     key = key?.toString() ?? '';
 
     return (
         key
             // escape the escape char to avoid ambiguity
-            .replace('\\', '\\\\')
+            .replace(escapeCharRegex, '\\\\')
             // escape dot, because we use it as separator
-            .replace('.', '\\_')
+            .replace(dotRegex, '\\_')
             // make it lowercase so it's compatible with PascalCase backend
             .toLowerCase()
     );
