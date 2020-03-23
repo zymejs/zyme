@@ -20,12 +20,26 @@ type FormModelInit<T> = {
 
 let creatingForm = false;
 
+export function createForm<T extends {}>(fcn: () => Promise<FormModel<T>>): Form<T | null>;
 export function createForm<T extends {}>(model: FormModelInit<T>): Form<T>;
 export function createForm<T extends {}>(model: null): Form<T | null>;
-export function createForm<T extends {} | null>(model: FormModelInit<T> | null): Form<T> {
+export function createForm<T extends {} | null>(
+    model: FormModelInit<T> | null | (() => Promise<FormModel<T>>)
+): Form<T> {
     try {
         creatingForm = true;
-        const form = new Form(model as T);
+
+        const form = new Form();
+
+        if (model instanceof Function) {
+            // async loading of the form
+            model().then(m => {
+                form.model = m;
+            });
+        } else {
+            form.model = model;
+        }
+
         return reactive(form as any) as Form<T>;
     } finally {
         creatingForm = false;
@@ -33,15 +47,13 @@ export function createForm<T extends {} | null>(model: FormModelInit<T> | null):
 }
 
 export class Form<T = unknown> {
-    constructor(model: T) {
+    constructor() {
         if (!creatingForm) {
             throw new Error(`Use createForm() function instead of constructor.`);
         }
-
-        this.model = model;
     }
 
-    public model: T;
+    public model: T = null as any;
     public readonly busy: boolean = false;
     public readonly errors: readonly FormError[] = [];
 
