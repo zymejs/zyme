@@ -14,7 +14,7 @@ export interface FormPartProps {
 }
 
 export interface FormFieldProps<T> extends FormPartProps {
-    field?: FieldType | null | FormField<T>;
+    field?: FieldType | null | FormField;
     value?: T | null | undefined;
     disabled?: boolean;
 }
@@ -30,7 +30,7 @@ export interface FormField<T = unknown> extends FormPart {
 
     readonly model: object | any[] | null;
 
-    readonly disabled: Readonly<boolean>;
+    readonly disabled: boolean;
 
     input(value: T | null | undefined): void;
 
@@ -75,12 +75,14 @@ export function useFormPart(props: FormPartProps | Refs<FormPartProps>): FormPar
     });
 }
 
+export function useFormField<T>(props: FormFieldProps<T>): FormField<T>;
+export function useFormField<T>(props: Refs<FormFieldProps<T>>): FormField<T>;
 export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T>>): FormField<T> {
     const vm = requireCurrentInstance();
 
     // if full field object was passed through props, just return it
     if (!isRef(props.field) && props.field instanceof Object) {
-        return props.field;
+        return props.field as FormField<T>;
     }
 
     const formCtx = injectFormContext();
@@ -145,10 +147,6 @@ export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T
     }
 }
 
-function isReadyField(field: any | undefined): field is FormField {
-    return field instanceof Object;
-}
-
 function getModelRef(formCtx: FormContext, modelRef: Ref<any> | undefined): Readonly<Ref<any>> {
     // if no model is passed via props and no form is defined
     // there is no option there will be a model afterwards
@@ -159,7 +157,7 @@ function getModelRef(formCtx: FormContext, modelRef: Ref<any> | undefined): Read
     return computed(() => {
         let model = modelRef?.value;
         if (model === undefined) {
-            model = formCtx.form.model;
+            model = formCtx.model;
         }
 
         return model;

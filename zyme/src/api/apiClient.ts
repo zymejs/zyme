@@ -35,17 +35,17 @@ class ApiClient {
     }
 
     submitForm<T, TResult>(
-        endpoint: ApiEndpoint<T, TResult>,
-        form: Form<T | null>
+        form: Form<T | null>,
+        endpoint: ApiEndpoint<T, TResult>
     ): Promise<TResult>;
     submitForm<T, TResult>(
-        endpoint: ApiEndpoint<T, TResult>,
         form: Form,
+        endpoint: ApiEndpoint<T, TResult>,
         request: T
     ): Promise<TResult>;
     submitForm<T, TResult>(
-        endpoint: ApiEndpoint<T, TResult>,
         form: Form,
+        endpoint: ApiEndpoint<T, TResult>,
         request?: T
     ): Promise<TResult> {
         return form.submit(() => {

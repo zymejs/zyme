@@ -5,7 +5,7 @@
         "arrow-parens": false,
         "interface-name": [true, "never-prefix"],
         "max-classes-per-file": false,
-        "prefer-const": false,
+        "prefer-const": true,
         "trailing-comma": false,
         "no-var-requires": false,
         "only-arrow-functions": false,
@@ -16,7 +16,15 @@
         "eofline": false,
         "unified-signatures": false,
         "no-console": false,
-        "whitespace": [false, "check-branch"]
+        "whitespace": [false, "check-branch"],
+        "no-unused-variable": true,
+        "no-unused-expression": true,
+        "ordered-imports": [
+            true,
+            {
+                "named-imports-order": "lowercase-first"
+            }
+        ]
     },
     "cliOptions": {
         "exclude": ["node_modules"]
