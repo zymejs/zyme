@@ -24,7 +24,21 @@ export const component = defineComponent;
 export type Component = FunctionResult<typeof component>;
 
 import { ExtractPropTypes } from '@vue/composition-api/dist/component/componentProps';
+import { ComponentOptions } from 'vue';
 
-export type PropTypes<T> = T extends (...args: any[]) => infer R
+type PropTypesCore<T> = T extends (...args: any[]) => infer R
     ? ExtractPropTypes<R>
     : ExtractPropTypes<T>;
+
+// this fixes some error in vue typings
+export type PropTypes<T> = {
+    [K in keyof PropTypesCore<T>]: PropTypesCore<T>[K];
+};
+
+export type ComponentPropOptions<T> = T extends ComponentOptions<Vue, any, any, any, infer P>
+    ? P
+    : undefined;
+
+export type ComponentProps<T> = ComponentPropOptions<T> extends {}
+    ? PropTypes<Defined<ComponentPropOptions<T>>>
+    : void;
