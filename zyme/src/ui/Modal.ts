@@ -1,17 +1,9 @@
 import Vue, { ComponentOptions } from 'vue';
-import {
-    mixin,
-    onUnmounted,
-    prop,
-    requireCurrentInstance,
-    PropTypes,
-    provideService
-} from '../core';
-
-const modalHandlerSymbol = Symbol('modal');
+import { onUnmounted, prop, requireCurrentInstance, PropTypes } from '../core';
+import { getScrollBarWidth } from './scrollbarWidth';
 
 type ModalHandlerProps<TResult> = {
-    [modalHandlerSymbol]: ModalHandler<TResult>;
+    modal: ModalHandler<TResult>;
 };
 
 type ModalHandlePropsDef = FunctionResult<typeof useModalProps>;
@@ -32,7 +24,7 @@ type ModalComponentView<T extends ModalComponentOptions<any, any>> =
 type ModalPropsBase<T> = T extends ModalComponentOptions<any, infer TProps>
     ? PropTypes<TProps>
     : never;
-type ModalPropsWithoutHandler<T> = Omit<ModalPropsBase<T>, typeof modalHandlerSymbol>;
+type ModalPropsWithoutHandler<T> = Omit<ModalPropsBase<T>, 'modal'>;
 
 type ModalProps<T> = keyof ModalPropsWithoutHandler<T> extends never
     ? void
@@ -40,51 +32,16 @@ type ModalProps<T> = keyof ModalPropsWithoutHandler<T> extends never
 
 type ModalResult<T> = T extends ModalComponentOptions<infer TResult, any> ? TResult : never;
 
-// export type OpenModelOptions<
-//     TResult,
-//     TProps extends ModalHandlerProps<TResult>,
-//     TModal extends ModalComponentOptions<TResult, TProps>
-// > = {
-//     modal: TModal;
-//     props: TProps;
-// };
-
-// type ModalProps<T> =
-//     // this one checks if there are some properties - if no, it wont allow using component as modal
-//     ComponentProps<T> extends void
-//         ? never // this checks if properties include a special property for the modal handler
-//         : ComponentProps<T> extends ModalHandlerProps<any> // we check if there are any props left after removing modal handler // because it's automaticlaly added
-//         ? keyof ModalPropsWithoutHandler<T> extends never
-//             ? {}
-//             : { props: ModalPropsWithoutHandler<T> }
-//         : never;
-
-// type ModalPropsWithoutHandler<T> = Omit<ComponentProps<T>, typeof modalHandlerSymbol>;
-
 interface ModalHandler<T> {
-    resolve(result: T): void;
-    reject(): void;
+    done(result: T): void;
+    cancel(): void;
 }
 
-export function useModalMixin<T = void>() {
-    return mixin({
-        props: useModalProps<T>(),
-        setup(props, ctx) {
-            return {
-                done(result: T) {
-                    props[modalHandlerSymbol].resolve(result);
-                },
-                cancel() {
-                    props[modalHandlerSymbol].reject();
-                }
-            };
-        }
-    });
-}
+const allModals: ModalHandler<unknown>[] = [];
 
-function useModalProps<T>() {
+export function useModalProps<T = void>() {
     return {
-        [modalHandlerSymbol]: prop<ModalHandler<T>>().required()
+        modal: prop<ModalHandler<T>>().required()
     };
 }
 
@@ -92,12 +49,12 @@ export function useModal<T extends ModalComponentOptions<any, any>>(modal: Modal
     const view = unwrapModalComponent(modal);
     const currentInstance = requireCurrentInstance();
 
-    const modals: ModalHandler<unknown>[] = [];
+    const localModals: ModalHandler<unknown>[] = [];
 
     onUnmounted(() => {
         // close all modals when component is unmounted
-        for (const m of modals) {
-            m.reject();
+        for (const m of localModals) {
+            m.cancel();
         }
     });
 
@@ -105,28 +62,28 @@ export function useModal<T extends ModalComponentOptions<any, any>>(modal: Modal
         open(props: ModalProps<T>): Promise<ModalResult<T>> {
             const promise = new Promise<ModalResult<T>>((resolve, reject) => {
                 const handler: ModalHandler<ModalResult<T>> = {
-                    resolve(result) {
+                    done(result) {
                         resolve(result);
-                        vm.$destroy();
+                        closeModal();
                     },
-                    reject() {
+                    cancel() {
                         reject();
-                        vm.$destroy();
-                        // remove it from modal queue
-                        modals.splice(modals.indexOf(handler), 1);
+                        closeModal();
                     }
                 };
 
-                modals.push(handler);
+                allModals.push(handler);
+                localModals.push(handler);
+
+                updateBodyMargin();
 
                 const vm = new Vue({
                     parent: currentInstance,
-                    provide: {},
                     render: h =>
                         h(view, {
                             props: {
-                                [modalHandlerSymbol]: handler,
-                                ...props
+                                ...props,
+                                modal: handler
                             }
                         })
                 });
@@ -134,6 +91,16 @@ export function useModal<T extends ModalComponentOptions<any, any>>(modal: Modal
                 vm.$mount();
 
                 currentInstance.$el.ownerDocument?.body.appendChild(vm.$el);
+
+                function closeModal() {
+                    vm.$destroy();
+                    vm.$el.remove();
+                    // remove it from modal queue
+                    allModals.splice(allModals.indexOf(handler), 1);
+                    localModals.splice(localModals.indexOf(handler), 1);
+
+                    updateBodyMargin();
+                }
             });
 
             return promise;
@@ -164,4 +131,20 @@ function unwrapModalComponent<T>(modal: ModalComponentView<T>) {
     }
 
     return modal;
+}
+
+let originalBodyMargin: string | null = null;
+let originalBodyOverflow: string | null = null;
+
+function updateBodyMargin() {
+    if (allModals.length) {
+        originalBodyOverflow = document.body.style.overflowY;
+        originalBodyMargin = document.body.style.marginRight;
+
+        document.body.style.overflowY = 'hidden';
+        document.body.style.marginRight = getScrollBarWidth() + 'px';
+    } else {
+        document.body.style.overflowY = originalBodyOverflow || '';
+        document.body.style.marginRight = originalBodyMargin || '';
+    }
 }
