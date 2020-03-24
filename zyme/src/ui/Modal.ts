@@ -19,7 +19,8 @@ type ModalComponentOptions<TResult, TProps extends ModalHandlePropsDef> = Compon
 
 type ModalComponentView<T extends ModalComponentOptions<any, any>> =
     | T
-    | (() => Promise<{ default: T }>);
+    | (() => Promise<{ default: T }>)
+    | Promise<{ default: T }>;
 
 type ModalPropsBase<T> = T extends ModalComponentOptions<any, infer TProps>
     ? PropTypes<TProps>
@@ -45,10 +46,21 @@ export function useModalProps<T = void>() {
     };
 }
 
-export function useModal<T extends ModalComponentOptions<any, any>>(modal: ModalComponentView<T>) {
-    const view = unwrapModalComponent(modal);
-    const currentInstance = requireCurrentInstance();
+export type OpenModalOptions<T extends ModalComponentOptions<any, any>> = ModalProps<T> extends void
+    ? OpenModalOptionsWithoutProps<T>
+    : OpenModalOptionsWithProps<T>;
 
+interface OpenModalOptionsWithoutProps<T> {
+    modal: ModalComponentView<T>;
+}
+
+interface OpenModalOptionsWithProps<T> {
+    modal: ModalComponentView<T>;
+    props: ModalProps<T>;
+}
+
+export function useModal() {
+    const currentInstance = requireCurrentInstance();
     const localModals: ModalHandler<unknown>[] = [];
 
     onUnmounted(() => {
@@ -59,7 +71,10 @@ export function useModal<T extends ModalComponentOptions<any, any>>(modal: Modal
     });
 
     return {
-        open(props: ModalProps<T>): Promise<ModalResult<T>> {
+        open<T extends ModalComponentOptions<any, any>>(options: OpenModalOptions<T>) {
+            const view = unwrapModalComponent(options.modal);
+            const props = (options as OpenModalOptionsWithProps<T>).props;
+
             const promise = new Promise<ModalResult<T>>((resolve, reject) => {
                 const handler: ModalHandler<ModalResult<T>> = {
                     done(result) {

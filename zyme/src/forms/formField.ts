@@ -1,22 +1,37 @@
 import { computed, isRef, ref, set, PropType, Ref } from '@vue/composition-api';
 
-import { prop, reactive, requireCurrentInstance, toRefs, unref, Refs } from '../core';
+import {
+    prop,
+    reactive,
+    requireCurrentInstance,
+    toRefs,
+    unref,
+    Refs,
+    toRef,
+    mixin,
+    PropTypes
+} from '../core';
 
-import { injectFormContext, FormContext } from './formContext';
+import { injectFormContext, FormContext, provideFormContext } from './formContext';
 import { normalizeErrorKey } from './formErrorExpression';
 import { getMeta } from './formMeta';
+import { FormModel } from './formModel';
 
 type FieldType = string | number | null | undefined;
 
 export interface FormPartProps {
-    field?: FieldType | null | FormField;
-    model?: object | any[];
+    readonly field?: FieldType | null | FormField;
+    readonly model?: object | any[];
 }
 
 export interface FormFieldProps<T> extends FormPartProps {
-    field?: FieldType | null | FormField;
-    value?: T | null | undefined;
-    disabled?: boolean;
+    readonly field?: FieldType | null | FormField;
+    readonly value?: T | null | undefined;
+    readonly disabled?: boolean;
+}
+
+export interface FormSheetProps<T> {
+    readonly model: FormModel<T>;
 }
 
 export interface FormPart {
@@ -58,6 +73,27 @@ export function useFormFieldProps<T>(type?: PropType<T>) {
             default: false
         })
     };
+}
+
+type Models<T> = {
+    [K in keyof T]: FormModel<T[K]>;
+};
+
+export function useFormModel<T, K extends keyof Models<T>>(props: T, key: K) {
+    const model = computed(() => props[key]) as Readonly<Ref<FormModel<T[K]>>>;
+    provideFormContext({
+        model: model
+    });
+
+    const errors = computed(() => {
+        const meta = getMeta(model.value);
+        return meta.errors;
+    });
+
+    return reactive({
+        model,
+        errors
+    });
 }
 
 export function useFormPart(props: FormPartProps | Refs<FormPartProps>): FormPart {

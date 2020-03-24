@@ -3,7 +3,7 @@ export type TypeKey = string | symbol;
 /**
  * Marks object as having a type defined.
  */
-export interface Typed<TKey extends TypeKey = TypeKey> extends Object {
+export interface Typed<TKey extends TypeKey = TypeKey> {
     readonly $type: TKey;
 }
 

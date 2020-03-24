@@ -1,4 +1,4 @@
-import { set, Ref } from '@vue/composition-api';
+import { Ref } from '@vue/composition-api';
 
 import { reactive } from '../core';
 import { writable } from '../utils';
@@ -15,30 +15,38 @@ import { FormModel } from './formModel';
 type FormSubmit<T, R> = (m: NonNullable<T>) => Promise<R>;
 
 type FormModelInit<T> = {
-    [K in keyof FormModel<T>]: FormModelInit<T>[K] | Ref<FormModel<T>[K]>;
+    [K in keyof FormModel<T>]: FormModel<T>[K] | Ref<FormModel<T>[K]>;
 };
 
 let creatingForm = false;
 
-export function createForm<T extends {}>(fcn: () => Promise<FormModel<T>>): Form<T | null>;
-export function createForm<T extends {}>(model: FormModelInit<T>): Form<T>;
-export function createForm<T extends {}>(model: null): Form<T | null>;
-export function createForm<T extends {} | null>(
-    model: FormModelInit<T> | null | (() => Promise<FormModel<T>>)
-): Form<T> {
+export function createFormAsync<T extends {}>(fcn: () => Promise<FormModel<T>>): Form<T | null> {
     try {
         creatingForm = true;
 
         const form = new Form();
 
-        if (model instanceof Function) {
-            // async loading of the form
-            model().then(m => {
-                form.model = m;
-            });
-        } else {
-            form.model = model;
-        }
+        // async loading of the form
+        fcn().then(m => {
+            form.model = m;
+        });
+
+        return reactive(form as any) as Form<T>;
+    } finally {
+        creatingForm = false;
+    }
+}
+
+export function createForm<T extends {}>(model: FormModel<T>): Form<T>;
+export function createForm<T extends {}>(model: FormModelInit<T>): Form<T>;
+export function createForm<T extends {}>(model: null): Form<T | null>;
+export function createForm<T extends {} | null>(model: FormModelInit<T> | null): Form<T> {
+    try {
+        creatingForm = true;
+
+        const form = new Form();
+
+        form.model = model;
 
         return reactive(form as any) as Form<T>;
     } finally {
