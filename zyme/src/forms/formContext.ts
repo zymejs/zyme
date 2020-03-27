@@ -15,7 +15,7 @@ export interface FormContextRootOptions {
 }
 
 export interface FormContextChildOptions<T> {
-    readonly model: Readonly<Ref<FormModel<T>>>;
+    readonly model: Readonly<Ref<Readonly<FormModel<T>>>>;
 }
 
 const FormContextSymbol = Symbol('FormContext');

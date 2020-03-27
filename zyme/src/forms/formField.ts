@@ -75,18 +75,20 @@ export function useFormFieldProps<T>(type?: PropType<T>) {
     };
 }
 
-type Models<T> = {
-    [K in keyof T]: FormModel<T[K]>;
-};
+export function useFormModel<T>(
+    model: Readonly<Ref<Readonly<FormModel<T>>>> | (() => FormModel<T>)
+) {
+    if (!isRef(model)) {
+        model = computed(model);
+    }
 
-export function useFormModel<T, K extends keyof Models<T>>(props: T, key: K) {
-    const model = computed(() => props[key]) as Readonly<Ref<FormModel<T[K]>>>;
-    provideFormContext({
-        model: model
+    provideFormContext<T>({
+        model
     });
 
+    const modelRef = model;
     const errors = computed(() => {
-        const meta = getMeta(model.value);
+        const meta = getMeta(modelRef.value);
         return meta.errors;
     });
 

@@ -12,9 +12,9 @@ export interface DataSourceOptions<T, TResult> {
     /**
      * Request payload - it will be watched for changes to make calls.
      * Can be function or a reference.
-     * If null is returned, API call will not be made.
+     * If undefined is returned, API call will not be made.
      */
-    request: (() => T | null) | Readonly<Ref<T | null>>;
+    request: (() => T | undefined) | Readonly<Ref<T | undefined>>;
 
     /** Options for debouncing */
     debounce?: {
@@ -70,14 +70,14 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
     return dataSource as DataSource<TResult>;
 
     // function used to load the data
-    async function loadData(request: T | null) {
+    async function loadData(request: T | undefined) {
         if (pendingCancel) {
             pendingCancel.cancel();
             pendingCancel = undefined;
             pendingPromise = undefined;
         }
 
-        if (request == null) {
+        if (request === undefined) {
             return null;
         }
 
