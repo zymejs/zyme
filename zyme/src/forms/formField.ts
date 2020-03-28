@@ -1,18 +1,8 @@
 import { computed, isRef, ref, set, PropType, Ref } from '@vue/composition-api';
 
-import {
-    prop,
-    reactive,
-    requireCurrentInstance,
-    toRefs,
-    unref,
-    Refs,
-    toRef,
-    mixin,
-    PropTypes
-} from '../core';
+import { prop, reactive, requireCurrentInstance, toRefs, unref, Refs } from '../core';
 
-import { injectFormContext, FormContext, provideFormContext } from './formContext';
+import { injectFormContext, provideFormContext, FormContext } from './formContext';
 import { normalizeErrorKey } from './formErrorExpression';
 import { getMeta } from './formMeta';
 import { FormModel } from './formModel';
@@ -127,40 +117,61 @@ export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T
     const propRefs = toRefs(props);
 
     if (formCtx) {
-        const model = getModelRef(formCtx, propRefs.model);
-        const value = getValueForField(model, propRefs.value, propRefs.field);
-        const errors = getErrorsForField(model, propRefs.field);
+        const modelRef = getModelRef(formCtx, propRefs.model);
+
+        const valueRef = computed({
+            get() {
+                const value = propRefs.value?.value;
+                if (value !== undefined) {
+                    return value;
+                }
+
+                const model = modelRef?.value;
+                const key = propRefs.field?.value as any;
+
+                if (model != null && key != null) {
+                    return model[key];
+                } else if (model != null) {
+                    return model;
+                }
+            },
+            set: input
+        });
+
+        const errors = getErrorsForField(modelRef, propRefs.field);
         const disabled = computed(() => propRefs.disabled?.value || formCtx.form.busy || false);
         const modelKey = propRefs.field ?? ref(null);
 
-        const field = reactive({
-            value,
-            model,
+        const fieldz = reactive({
+            value: valueRef,
+            model: modelRef,
             errors,
             disabled,
             modelKey,
 
-            input(v: T) {
-                if (disabled.value) {
-                    return;
-                }
-
-                vm.$emit('input', v);
-
-                const modelValue = model.value;
-                const fieldValue = modelKey.value;
-
-                if (modelValue != null && fieldValue != null) {
-                    set(modelValue, fieldValue, v);
-                }
-            },
+            input,
 
             clearErrors() {
                 // TODO
             }
         });
 
-        return field as FormField<T>;
+        function input(v: T) {
+            if (disabled.value) {
+                return;
+            }
+
+            vm.$emit('input', v);
+
+            const modelValue = modelRef.value;
+            const fieldValue = modelKey.value;
+
+            if (modelValue != null && fieldValue != null) {
+                set(modelValue, fieldValue, v);
+            }
+        }
+
+        return fieldz as FormField<T>;
     } else {
         const value = computed(() => props.value ?? null);
         const errors = ref<string[]>([]);
@@ -173,6 +184,10 @@ export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T
             disabled: disabled,
 
             input(v: T) {
+                if (disabled.value) {
+                    return;
+                }
+
                 vm.$emit('input', v);
             },
 

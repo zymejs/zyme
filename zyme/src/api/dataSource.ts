@@ -1,4 +1,4 @@
-import { isRef, reactive, ref, watch, Ref } from '@vue/composition-api';
+import { computed, isRef, reactive, ref, watch, Ref } from '@vue/composition-api';
 import axios, { CancelTokenSource } from 'axios';
 import debounce from 'lodash-es/debounce';
 
@@ -8,16 +8,16 @@ import { injectApiInterceptor } from './apiInterceptor';
 import { callEndpoint } from './callEndpoint';
 
 export interface DataSourceOptions<T, TResult> {
-    endpoint: ApiEndpoint<T, TResult>;
+    readonly endpoint: ApiEndpoint<T, TResult>;
     /**
      * Request payload - it will be watched for changes to make calls.
      * Can be function or a reference.
      * If undefined is returned, API call will not be made.
      */
-    request: (() => T | undefined) | Readonly<Ref<T | undefined>>;
+    readonly request: (() => T | undefined) | Readonly<Ref<T | undefined>>;
 
     /** Options for debouncing */
-    debounce?: {
+    readonly debounce?: {
         /** Number of milliseconds to debounce api calls */
         time?: number;
         leading?: boolean;
@@ -25,10 +25,10 @@ export interface DataSourceOptions<T, TResult> {
     };
 
     /** Data will be loaded into this ref. Optional. */
-    data?: ((result: TResult) => void) | Ref<TResult | null>;
+    readonly data?: ((result: TResult) => void) | Ref<TResult | null>;
 
     /** Loading flag will be updated into this ref. Optional. */
-    loading?: Ref<boolean>;
+    readonly loading?: Ref<boolean>;
 }
 
 export interface DataSource<T> {
@@ -46,6 +46,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
 
     const dataRef = isRef(opts.data) ? opts.data : ref<TResult>(null);
     const dataCallback = isRef(opts.data) ? null : opts.data;
+    const requestRef = isRef(opts.request) ? opts.request : computed(opts.request);
 
     const loadingRef = opts.loading ?? ref<boolean>(false);
 
@@ -57,26 +58,26 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
         trailing: opts.debounce?.trailing ?? true
     });
 
-    const dataSource = reactive({
+    watch(requestRef, debouncedLoad, { deep: true });
+
+    return reactive({
         data: unref(dataRef),
         loading: unref(loadingRef),
         reload() {
+            debouncedLoad();
             return debouncedLoad.flush();
         }
-    }) as Writable<DataSource<TResult>>;
-
-    watch(opts.request, debouncedLoad, { deep: true });
-
-    return dataSource as DataSource<TResult>;
+    }) as DataSource<TResult>;
 
     // function used to load the data
-    async function loadData(request: T | undefined) {
+    async function loadData() {
         if (pendingCancel) {
             pendingCancel.cancel();
             pendingCancel = undefined;
             pendingPromise = undefined;
         }
 
+        const request = requestRef.value;
         if (request === undefined) {
             return null;
         }
@@ -95,11 +96,11 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
             pendingPromise = promise;
             pendingCancel = cancel;
 
-            dataSource.loading = true;
+            loadingRef.value = true;
 
             const result = await promise;
 
-            dataSource.data = result;
+            dataRef.value = result;
             if (dataCallback) {
                 dataCallback(result);
             }
@@ -112,7 +113,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
                 pendingPromise = undefined;
                 pendingCancel = undefined;
 
-                dataSource.loading = false;
+                loadingRef.value = false;
             }
         }
     }

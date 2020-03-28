@@ -1,5 +1,5 @@
 import Vue, { ComponentOptions } from 'vue';
-import { onUnmounted, prop, requireCurrentInstance, PropTypes } from '../core';
+import { onUnmounted, prop, requireCurrentInstance, CancelError, PropTypes } from '../core';
 import { getScrollBarWidth } from './scrollbarWidth';
 
 type ModalHandlerProps<TResult> = {
@@ -82,7 +82,7 @@ export function useModal() {
                         closeModal();
                     },
                     cancel() {
-                        reject();
+                        reject(new CancelError());
                         closeModal();
                     }
                 };
