@@ -6,22 +6,15 @@
     "author": "",
     "version": "1.0.0",
     "main": "./src/index.ts",
-    "scripts": {
-        "test-once": "karma start --single-run",
-        "test-server": "karma start --no-single-run"
-    },
     "dependencies": {
         "lodash-es": "~4.17.11",
         "vue": "~2.6.10",
         "zyme": "~1.0.0"
     },
     "devDependencies": {
-        "@types/jasmine": "~3.5.9",
         "@types/lodash-es": "~4.17.1",
-        "karma": "~4.4.1",
         "tslint": "~6.1.0",
         "typescript": "~3.8.3",
-        "typescript-formatter": "~7.2.2",
-        "zyme-tests": "~1.0.0"
+        "typescript-formatter": "~7.2.2"
     }
 }

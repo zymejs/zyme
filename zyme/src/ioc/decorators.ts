@@ -46,13 +46,13 @@ export function IocInject<T>(
         identifier = identifier || Reflect.getMetadata('design:type', target, propertyKey);
 
         if (!identifier && parameterIndex !== undefined) {
-            let paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey);
+            const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey);
             if (paramTypes) {
                 identifier = paramTypes[parameterIndex];
             }
         }
 
-        let id = assertIdentifier(identifier);
+        const id = assertIdentifier(identifier);
 
         if (target instanceof Vue) {
             // setup ioc configuration for this component
@@ -119,7 +119,7 @@ export function IocProvide<T>(
             resolve = undefined;
         }
 
-        let id = assertIdentifier(identifier);
+        const id = assertIdentifier(identifier);
 
         // setup ioc provide configuration for this component
         reflection.addDecorator(target, options => {
@@ -161,7 +161,7 @@ function assertIdentifier<T>(
         throw new Error('Identifier of injected service is not defined');
     }
 
-    let prohibited = [Object, Number, Boolean, String];
+    const prohibited = [Object, Number, Boolean, String];
 
     if (prohibited.indexOf(identifier as any) >= 0) {
         throw new Error(`Identifier of injected service '${identifier as any}' is not valid`);
@@ -175,7 +175,7 @@ function setInjectOptions(
     property: string,
     options: IocInjectOptions
 ) {
-    let injectOptions = componentOptions.iocInject || (componentOptions.iocInject = {});
+    const injectOptions = componentOptions.iocInject || (componentOptions.iocInject = {});
     injectOptions[property] = options;
 }
 
@@ -184,6 +184,6 @@ function setProvideOptions(
     property: string,
     options: IocProvideOptions
 ) {
-    let provideOptions = componentOptions.iocProvide || (componentOptions.iocProvide = {});
+    const provideOptions = componentOptions.iocProvide || (componentOptions.iocProvide = {});
     provideOptions[property] = options;
 }

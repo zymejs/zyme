@@ -1,9 +1,0 @@
-{
-    "name": "zyme-css-utils",
-    "version": "1.0.0",
-    "main": "./index.scss",
-    "private": true,
-    "scripts": {},
-    "dependencies": {},
-    "devDependencies": {}
-}

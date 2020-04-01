@@ -15,13 +15,10 @@ export {
     onUnmounted,
     onUpdated,
     watch,
-    provide,
-    Ref
+    provide
 } from '@vue/composition-api';
 
 export const component = defineComponent;
-
-export type Component = FunctionResult<typeof component>;
 
 import { ExtractPropTypes } from '@vue/composition-api/dist/component/componentProps';
 import { ComponentOptions } from 'vue';

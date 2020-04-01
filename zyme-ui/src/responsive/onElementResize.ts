@@ -2,7 +2,7 @@ import { onUnmounted, watch, Ref } from '@vue/composition-api';
 import { ResizeSensor, ResizeSensorCallback } from 'css-element-queries';
 
 export function onElementResize(
-    el: Readonly<Ref<Element | Vue | null>>,
+    el: Readonly<Ref<Element | Vue | null | undefined>>,
     callback: ResizeSensorCallback
 ) {
     let sensor: ResizeSensor | undefined;
