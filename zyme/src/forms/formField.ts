@@ -142,7 +142,7 @@ export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T
         const disabled = computed(() => propRefs.disabled?.value || formCtx.form.busy || false);
         const modelKey = propRefs.field ?? ref(null);
 
-        const fieldz = reactive({
+        const field = reactive({
             value: valueRef,
             model: modelRef,
             errors,
@@ -171,7 +171,7 @@ export function useFormField<T>(props: FormFieldProps<T> | Refs<FormFieldProps<T
             }
         }
 
-        return fieldz as FormField<T>;
+        return field as FormField<T>;
     } else {
         const value = computed(() => props.value ?? null);
         const errors = ref<string[]>([]);
