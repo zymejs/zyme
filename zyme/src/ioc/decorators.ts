@@ -1,7 +1,7 @@
 import { interfaces } from 'inversify';
 import { inject as inversifyInject, optional as inversifyOptional } from 'inversify';
-import isPlainObject from 'lodash-es/isPlainObject';
-import isSymbol from 'lodash-es/isSymbol';
+import { isPlainObject } from 'lodash';
+import { isSymbol } from 'lodash';
 
 import 'reflect-metadata';
 import Vue, { ComponentOptions } from 'vue';

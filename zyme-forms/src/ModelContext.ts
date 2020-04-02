@@ -1,4 +1,4 @@
-import isFunction from 'lodash-es/isFunction';
+import { isFunction } from 'lodash';
 
 import { Model, ModelGeneric } from './Model';
 
