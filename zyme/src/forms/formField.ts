@@ -31,7 +31,7 @@ export interface FormPart {
 
 export interface FormField<T = unknown> extends FormPart {
     /** Form model for this part */
-    readonly value: Readonly<T | null | undefined>;
+    value: Readonly<T | null | undefined>;
 
     readonly model: object | any[] | null;
 
