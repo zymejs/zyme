@@ -4,10 +4,10 @@ import { Form } from './form';
 import { normalizeErrorKey } from './formErrorExpression';
 import { getMeta } from './formMeta';
 
-type RefParam<T> = Ref<T> | (() => T);
+type RefParam<T> = Readonly<Ref<T>> | (() => T);
 type ModelBase = object | any[];
 
-interface FieldOptions<
+export interface FieldOptions<
     TModel extends ModelBase,
     TField extends keyof TModel,
     TValue extends TModel[TField] = TModel[TField]
@@ -29,7 +29,7 @@ type FieldDefaultOptions<TValue> = TValue extends null
           defaultValue: TValue;
       };
 
-interface SingleSelectOptions<
+export interface SingleSelectOptions<
     TModel extends ModelBase,
     TField extends keyof TModel,
     TValue extends TModel[TField] = TModel[TField],
@@ -55,7 +55,7 @@ interface SingleSelectOptions<
 //     TItem = TModel[TField]
 // > = SingleSelectBaseOptions<TModel, TField, TValue, TItem> & FieldDefaultOptions<TModel[TField]>;
 
-interface FormField<TValue> {
+export interface FormField<TValue = unknown> {
     /**
      * Current value of the field.
      * Can be read and written to
@@ -78,7 +78,7 @@ interface FormField<TValue> {
     readonly errors: readonly string[];
 }
 
-interface SingleSelectField<TValue, TItem> extends FormField<TValue> {
+export interface SingleSelectField<TValue, TItem> extends FormField<TValue> {
     /** Items for the field */
     readonly items: TItem[];
 
@@ -89,9 +89,10 @@ interface SingleSelectField<TValue, TItem> extends FormField<TValue> {
 export function basicField<TModel extends ModelBase, TField extends keyof TModel>(
     options: FieldOptions<TModel, TField>
 ): FormField<TModel[TField]> {
-    const field = coreField(options);
+    const fieldCore = coreField(options);
+    const field = reactive(fieldCore as any) as FormField<TModel[TField]>;
 
-    return (reactive(field) as unknown) as FormField<TModel[TField]>;
+    return field;
 }
 
 export function singleSelect<
@@ -100,53 +101,166 @@ export function singleSelect<
     TValue extends TModel[TField],
     TItem
 >(options: SingleSelectOptions<TModel, TField, TValue, TItem>): SingleSelectField<TValue, TItem> {
-    const field = coreField(options);
+    const fieldCore = coreField(options);
     const items = toRef(options.items);
-    const itemValue = options.itemValue ?? (t => (t as unknown) as TValue);
+    const itemValue = options.itemValue ?? ((t) => (t as unknown) as TValue);
 
     const selectedItem = computed(() => {
-        return items.value?.find(i => itemValue(i) === field.value.value);
+        return items.value?.find((i) => itemValue(i) === fieldCore.value.value);
     });
 
-    const defaultValue = options.defaultValue ?? (null as any);
+    // const defaultValue = options.defaultValue ?? (null as any);
 
     if (options.autoSelectFirst != null) {
         const autoSelectFirst = toRef(options.autoSelectFirst);
-        watch(selectedItem, item => {
+        watch(selectedItem, (item) => {
             if (!autoSelectFirst.value) {
                 return;
             }
 
             if (item == null && items.value != null && items.value.length > 0) {
                 const firstItem = items.value[0];
-                field.value.value = itemValue(firstItem);
-            } else {
-                field.value.value = defaultValue;
+                fieldCore.value.value = itemValue(firstItem);
             }
         });
     }
 
-    const result = reactive({
-        ...field,
+    const field = reactive({
+        ...fieldCore,
         items,
-        selectedItem
-    });
+        selectedItem,
+    } as any) as SingleSelectField<TValue, TItem>;
 
-    return (result as unknown) as SingleSelectField<TValue, TItem>;
+    return field;
+}
+
+type FormFieldProxyOptions<TValue, TField extends FormField<TValue>> = {
+    [K in keyof TField]?: K extends 'value'
+        ? FormFieldValueProxy<TValue>
+        : FormFieldReadonlyPropProxy<TField[K]>;
+};
+
+type FormFieldReadonlyPropProxy<T> = (value: T) => T;
+type FormFieldWritablePropProxy<T> = {
+    get?(this: void, value: T): T;
+    set?(this: void, value: T): T;
+};
+type FormFieldValueProxy<T> = FormFieldWritablePropProxy<T> | FormFieldReadonlyPropProxy<T>;
+type FormFieldRefs<TField extends FormField> = {
+    [K in keyof TField]: K extends 'value' ? Ref<TField[K]> : Readonly<Ref<TField[K]>>;
+};
+
+const foo: SingleSelectField<string, { foo: string }> = null as any;
+const prox = singleSelectProxy(foo, {
+    value: {
+        set: (v) => {
+            return v;
+        },
+    },
+});
+
+export function basicFieldProxy<TValue, TField extends FormField<TValue>>(
+    field: RefParam<TField> | TField,
+    options: FormFieldProxyOptions<TValue, TField>
+): TField {
+    const fieldRef = toRef(field);
+
+    const result: FormFieldRefs<FormField<TValue>> = {
+        value: getValueProxy(fieldRef, options.value),
+        disabled: getPropProxy(fieldRef, options, 'disabled'),
+        errors: getPropProxy(fieldRef, options, 'errors'),
+        field: getPropProxy(fieldRef, options, 'field'),
+        form: getPropProxy(fieldRef, options, 'form'),
+        model: getPropProxy(fieldRef, options, 'model'),
+    };
+
+    return reactive(result) as TField;
+}
+
+export function singleSelectProxy<TValue, TField extends SingleSelectField<TValue, any>>(
+    field: RefParam<TField> | TField,
+    options: FormFieldProxyOptions<TValue, TField>
+): TField {
+    const fieldRef = toRef(field);
+
+    const result: FormFieldRefs<SingleSelectField<TValue, any>> = {
+        value: getValueProxy(fieldRef, options.value),
+        disabled: getPropProxy(fieldRef, options, 'disabled'),
+        errors: getPropProxy(fieldRef, options, 'errors'),
+        field: getPropProxy(fieldRef, options, 'field'),
+        form: getPropProxy(fieldRef, options, 'form'),
+        model: getPropProxy(fieldRef, options, 'model'),
+        items: getPropProxy(fieldRef, options, 'items'),
+        selectedItem: getPropProxy(fieldRef, options, 'selectedItem'),
+    };
+
+    return reactive(result) as TField;
+}
+
+function getPropProxy<TValue, TField extends FormField<TValue>, K extends keyof TField>(
+    field: Ref<TField>,
+    options: FormFieldProxyOptions<TValue, TField>,
+    prop: K
+): Readonly<Ref<TField[K]>> {
+    const proxy = options[prop] as FormFieldReadonlyPropProxy<TField[K]> | undefined;
+    if (!proxy) {
+        return computed(() => field.value[prop]) as Readonly<Ref<TField[K]>>;
+    }
+
+    return computed(() => proxy(field.value[prop])) as Readonly<Ref<TField[K]>>;
+}
+
+function getValueProxy<TValue, TField extends FormField<TValue>>(
+    field: Ref<TField>,
+    proxy: FormFieldValueProxy<TValue> | undefined
+): Ref<TValue> {
+    if (!proxy) {
+        return computed({
+            get: () => field.value.value,
+            set: (v) => (field.value.value = v),
+        });
+    }
+
+    let getValue: () => TValue;
+    let setValue: (value: TValue) => void;
+
+    if (proxy instanceof Function) {
+        getValue = () => proxy(field.value.value);
+        setValue = (v) => (field.value.value = v);
+    } else {
+        const getProxy = proxy.get;
+        if (getProxy) {
+            getValue = () => getProxy(field.value.value);
+        } else {
+            getValue = () => field.value.value;
+        }
+
+        const setProxy = proxy.set;
+        if (setProxy) {
+            setValue = (v) => (field.value.value = setProxy(v));
+        } else {
+            setValue = (v) => (field.value.value = v);
+        }
+    }
+
+    return computed({
+        get: getValue,
+        set: setValue,
+    });
 }
 
 function coreField<
     TModel extends ModelBase,
     TField extends keyof TModel,
     TValue extends TModel[TField]
->(options: FieldOptions<TModel, TField, TValue>) {
+>(options: FieldOptions<TModel, TField, TValue>): FormFieldRefs<FormField<TValue>> {
     const form = toRef(options.form);
     const model = toRef(() => form.value.model);
     const field = toRef(options.field);
 
     const value = computed({
         get: () => model.value[field.value] as TValue,
-        set: v => set(model.value, field.value, v)
+        set: (v) => set(model.value, field.value, v),
     });
 
     const errors = computed(() => getErrorsForField(model, field));
@@ -161,7 +275,7 @@ function coreField<
         // this trick will cause anything that is used in handler to be observed
         const validated = computed(() => validate(value.value));
 
-        watch(validated, v => {
+        watch(validated, (v) => {
             if (recursiveCheck) {
                 // if was already changed by validation
                 recursiveCheck = false;
@@ -180,10 +294,10 @@ function coreField<
     return {
         form,
         model,
-        field,
+        field: field as Ref<string | number>,
         value,
         errors,
-        disabled
+        disabled,
     };
 }
 
@@ -212,7 +326,7 @@ function getErrorsForField<TModel extends ModelBase, TField extends keyof TModel
         const fieldNormalized = normalizeErrorKey(field.toString());
         const errors = meta.errors[fieldNormalized] ?? [];
 
-        return errors.map(e => e.message);
+        return errors.map((e) => e.message);
     }
 
     return [] as string[];
