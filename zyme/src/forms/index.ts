@@ -6,3 +6,5 @@ export * from './form';
 
 import * as formBuilder from './formBuilder';
 export { formBuilder };
+
+export { FormField } from './formBuilder';

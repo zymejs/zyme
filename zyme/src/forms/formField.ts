@@ -2,7 +2,7 @@ import { computed, isRef, PropType, Ref } from '@vue/composition-api';
 
 import { prop, reactive, requireCurrentInstance } from '../core';
 
-import { basicField, FormField } from './formBuilder';
+import { basicField, fieldProxy, FormField } from './formBuilder';
 import { injectFormContext, provideFormContext } from './formContext';
 import { getMeta } from './formMeta';
 import { FormModel } from './formModel';
@@ -12,12 +12,14 @@ type FieldType = string | number | null | undefined;
 export interface FormFieldProps<T> {
     readonly field?: FieldType | FormField<T> | null;
     readonly value?: T | null;
+    readonly disabled?: boolean;
 }
 
 export function useFormFieldProps<T>(type?: PropType<T>) {
     return {
-        field: prop<string | number | FormField>([String, Number, Object]).optional(),
-        value: prop(type).optional({ default: undefined })
+        field: prop<string | number | FormField<T>>([String, Number, Object]).optional(),
+        value: prop(type).optional({ default: undefined }),
+        disabled: prop(Boolean).optional()
     };
 }
 
@@ -44,7 +46,7 @@ export function useFormModel<T>(
     });
 }
 
-export function useBasicFormField<T>(props: FormFieldProps<T>) {
+export function useFormField<T>(props: FormFieldProps<T>) {
     const vm = requireCurrentInstance();
 
     const formCtx = injectFormContext();
@@ -57,43 +59,78 @@ export function useBasicFormField<T>(props: FormFieldProps<T>) {
 
         if (formCtx?.form) {
             return basicField<any, any>({
-                form: formCtx.form,
+                parent: formCtx.form,
                 field: field
             });
         }
-    }) as Readonly<Ref<FormField<T> | undefined>>;
-
-    const value = computed(() => {
-        const field = fieldRef.value;
-        if (field) {
-            return field.value;
-        }
-
-        return props.value;
     });
 
-    const errors = computed(() => {
-        return fieldRef?.value?.errors ?? [];
-    });
-
-    const disabled = computed(() => {
-        return fieldRef?.value?.disabled ?? false;
-    });
-
-    return reactive({
-        value,
-        errors,
-        disabled,
-        input(val: T) {
-            if (disabled.value) {
-                return;
+    const proxy = fieldProxy<T>({
+        value: () => {
+            const field = fieldRef.value;
+            if (field) {
+                return field.value;
             }
 
-            vm.$emit('input', val);
+            return props.value;
+        },
+        disabled: () => {
+            const field = fieldRef.value;
+            if (field) {
+                return field.disabled;
+            }
 
-            if (fieldRef.value) {
-                fieldRef.value.value = val;
+            return props.disabled ?? false;
+        },
+        errors: () => {
+            const field = fieldRef.value;
+            if (field) {
+                return field.errors;
+            }
+
+            return [];
+        },
+        field: () => {
+            const field = fieldRef.value;
+            if (field) {
+                return field.field;
+            }
+
+            return null;
+        },
+        form: () => {
+            const field = fieldRef.value;
+            if (field) {
+                return field.form;
+            }
+
+            return null;
+        },
+        meta: () => {
+            const field = fieldRef.value;
+            if (field) {
+                return field.meta;
+            }
+
+            return undefined;
+        },
+        model: () => {
+            const field = fieldRef.value;
+            if (field) {
+                return field.model;
+            }
+
+            return null;
+        },
+        update: v => {
+            vm.$emit('input', v);
+
+            const field = fieldRef.value;
+            if (field) {
+                field.update(v);
             }
         }
     });
+
+    return proxy;
 }
