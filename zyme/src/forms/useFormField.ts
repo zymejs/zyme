@@ -12,7 +12,7 @@ export interface FormFieldProps<T> {
 
 export function useFormFieldProps<T>(type?: PropType<T>) {
     return {
-        field: prop<string | number | FormField<T>>([String, Number, Object]).optional(),
+        field: prop<FormField<T>>([Object]).optional(),
         value: prop(type).optional({ default: undefined }),
         disabled: prop(Boolean).optional()
     };
@@ -38,15 +38,10 @@ export function useFormField<T>(props: FormFieldProps<T>) {
         return props.field?.errors ?? [];
     });
 
-    const key = computed(() => {
-        return props.field?.key ?? '';
-    });
-
     return createFieldCore(new FormField<T>(), {
         value,
         disabled,
         errors,
-        key,
         update: v => {
             vm.$emit('input', v);
             props.field?.update(v);

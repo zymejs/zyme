@@ -1,4 +1,4 @@
-import { combineErrorExpressions, normalizeErrorKey } from './formErrorExpression';
+import { combineErrorExpressions, normalizeErrorKey } from './formErrorHelpers';
 import { FormError } from './formErrorTypes';
 import { getMeta, FormModelMetadata } from './formMeta';
 

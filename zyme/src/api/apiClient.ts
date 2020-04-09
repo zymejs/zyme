@@ -1,6 +1,6 @@
 import { ref, Ref } from '@vue/composition-api';
 
-import { Form, FormRoot } from '../forms';
+import { FormModelBase, FormRoot } from '../forms';
 import { ApiEndpoint } from './apiEndpoint';
 import { injectApiInterceptor } from './apiInterceptor';
 import { callEndpoint } from './callEndpoint';
@@ -33,17 +33,16 @@ class ApiClient {
 
         return result;
     }
-    submitForm<T, TResult>(form: FormRoot<T>, endpoint: ApiEndpoint<T, TResult>): Promise<TResult>;
-    submitForm<T, TResult>(
-        form: FormRoot<T | null>,
+    submitForm<T extends FormModelBase, TResult>(
+        form: FormRoot<T>,
         endpoint: ApiEndpoint<T, TResult>
     ): Promise<TResult>;
-    submitForm<T, TResult>(
+    submitForm<T extends FormModelBase, TResult>(
         form: FormRoot<any>,
         endpoint: ApiEndpoint<T, TResult>,
         request: T
     ): Promise<TResult>;
-    submitForm<T, TResult>(
+    submitForm<T extends FormModelBase, TResult>(
         form: FormRoot<any>,
         endpoint: ApiEndpoint<T, TResult>,
         request?: T

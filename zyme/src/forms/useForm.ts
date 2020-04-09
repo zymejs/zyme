@@ -7,7 +7,7 @@ export function useForm<T extends FormModelBase>(field: () => FormField<T>) {
     return (reactive(form) as unknown) as Form<T>;
 }
 
-class FormChild<T extends FormModelBase | null> extends Form<T> {
+class FormChild<T extends FormModelBase> extends Form<T> {
     constructor(private readonly field: () => FormField<T>) {
         super();
     }

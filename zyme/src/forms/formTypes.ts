@@ -2,9 +2,9 @@ import { computed, reactive, set, watch } from '@vue/composition-api';
 import { writable } from 'zyme';
 
 import { unref } from '../core';
-import { normalizeErrorKey, FormErrorKey } from './formErrorExpression';
+import { getErrorsForModel } from './formErrorHelpers';
 import { FormError } from './formErrorTypes';
-import { toRef, createFieldCore } from './formFieldCore';
+import { createFieldCore, toRef } from './formFieldCore';
 import {
     FieldOptions,
     FormField,
@@ -13,13 +13,16 @@ import {
     SingleSelectField,
     SingleSelectOptions
 } from './formFieldTypes';
-import { getMeta } from './formMeta';
 
 export type FormSubmit<T, R> = (m: NonNullable<T>) => Promise<R>;
 
-export abstract class Form<T extends FormModelBase | null | unknown> {
+export abstract class Form<T extends FormModelBase> {
     public abstract model: T;
     public abstract readonly disabled: boolean = false;
+
+    public errorsForModel<TModel extends FormModelBase>(model: RefParam<TModel>) {
+        return computed(() => getErrorsForModel(model));
+    }
 
     public basicField<TKey extends keyof T, TValue extends T[TKey]>(
         key: TKey | RefParam<TKey>,
@@ -72,8 +75,7 @@ export abstract class Form<T extends FormModelBase | null | unknown> {
         return createFieldCore(new FormField<T>(), {
             value: computed(() => this.model),
             disabled: computed(() => this.disabled),
-            errors: computed(() => this.getErrorsForField('')),
-            key: computed(() => ''),
+            errors: computed(() => getErrorsForModel(this.model)),
             update: v => (this.model = v)
         });
     }
@@ -86,8 +88,11 @@ export abstract class Form<T extends FormModelBase | null | unknown> {
         const keyRef = toRef(key);
         const disabledRef = toRef(options?.disabled ?? false);
 
-        const value = computed(() => (this.model as T)[keyRef.value] as TValue);
-        const errors = computed(() => this.getErrorsForField(keyRef.value));
+        const valueOverride = options?.value;
+        const value = valueOverride
+            ? computed(() => valueOverride((this.model as T)[keyRef.value] as TValue))
+            : computed(() => (this.model as T)[keyRef.value] as TValue);
+        const errors = computed(() => getErrorsForModel(this.model, keyRef.value));
         const disabled = computed(() => disabledRef.value || this.disabled);
 
         const update = (v: TValue) => set(this.model, key, v);
@@ -95,7 +100,6 @@ export abstract class Form<T extends FormModelBase | null | unknown> {
         field.value = unref(value);
         field.errors = unref(errors);
         field.disabled = unref(disabled);
-        field.key = unref(keyRef) as string | number;
         field.update = update;
 
         const validate = options?.validate;
@@ -123,24 +127,9 @@ export abstract class Form<T extends FormModelBase | null | unknown> {
             });
         }
     }
-
-    private getErrorsForField(key: FormErrorKey) {
-        const model = this.model;
-
-        if (model != null && key != null) {
-            const meta = getMeta(model as FormModelBase);
-            // all error keys are normalized
-            const fieldNormalized = normalizeErrorKey(key);
-            const errors = meta.errors[fieldNormalized] ?? [];
-
-            return errors.map(e => e.message);
-        }
-
-        return [] as string[];
-    }
 }
 
-export abstract class FormRoot<T extends FormModelBase | null | unknown> extends Form<T> {
+export abstract class FormRoot<T extends FormModelBase> extends Form<T> {
     public abstract readonly errors: readonly FormError[] = [];
 
     public abstract submit<R>(action: FormSubmit<T, R>): Promise<R>;

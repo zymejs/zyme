@@ -1,6 +1,24 @@
 import jsepParse, * as jsep from 'jsep';
 
+import { FormModelBase } from './formFieldTypes';
+import { getMeta } from './formMeta';
+
 export type FormErrorKey = string | number | boolean | null | undefined | symbol;
+
+export function getErrorsForModel(model: FormModelBase | null, key?: FormErrorKey) {
+    key = key ?? '';
+
+    if (model != null) {
+        const meta = getMeta(model as FormModelBase);
+        // all error keys are normalized
+        const fieldNormalized = normalizeErrorKey(key);
+        const errors = meta.errors[fieldNormalized] ?? [];
+
+        return errors.map(e => e.message);
+    }
+
+    return [] as string[];
+}
 
 export function normalizeErrorExpression(key: string | null | undefined) {
     if (key == null || key === '') {

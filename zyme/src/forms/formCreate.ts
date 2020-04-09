@@ -1,7 +1,7 @@
 import { reactive, Ref } from '@vue/composition-api';
 import { writable } from 'zyme';
 
-import { normalizeErrorExpression } from './formErrorExpression';
+import { normalizeErrorExpression } from './formErrorHelpers';
 import { propagateErrors } from './formErrorPropagate';
 import { FormError, ValidationError } from './formErrorTypes';
 import { FormModelBase } from './formFieldTypes';
@@ -14,30 +14,28 @@ type FormModelProps<T> = {
 
 type FormModelInit<T> = T extends null ? FormModelProps<T> | null : FormModelProps<T>;
 
-export function createForm<T extends {}>(model: FormModel<T>): FormRoot<T>;
-export function createForm<T extends {}>(model: FormModelInit<T>): FormRoot<T>;
-export function createForm<T extends {}>(model: null): FormRoot<T | null>;
-export function createForm<T extends {} | null>(model: FormModelInit<T>): FormRoot<T> {
+export function createForm<T extends FormModelBase>(model: FormModel<T>): FormRoot<T>;
+export function createForm<T extends FormModelBase>(model: FormModelInit<T>): FormRoot<T>;
+export function createForm<T extends FormModelBase>(model: null): FormRoot<T>;
+export function createForm<T extends FormModelBase>(model: FormModelInit<T> | null): FormRoot<T> {
     const form = new FormImpl<T>(model);
 
     return reactive(form as any) as FormRoot<T>;
 }
 
-export function createFormAsync<T extends {}>(
-    fcn: () => Promise<FormModel<T>>
-): FormRoot<T | null> {
-    const form = new FormImpl<T | null>(null);
+export function createFormAsync<T extends {}>(fcn: () => Promise<FormModel<T>>): FormRoot<T> {
+    const form = new FormImpl<T>(null);
 
     // async loading of the form
     fcn().then(m => {
         form.model = m;
     });
 
-    return reactive(form as any) as FormRoot<T | null>;
+    return (reactive(form) as any) as FormRoot<T>;
 }
 
-class FormImpl<T extends FormModelBase | null | unknown> extends FormRoot<T> {
-    constructor(model: FormModelInit<T>) {
+class FormImpl<T extends FormModelBase> extends FormRoot<T> {
+    constructor(model: FormModelInit<T> | null) {
         super();
         this.model = reactive(model) as T;
     }

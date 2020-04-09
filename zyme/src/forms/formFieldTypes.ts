@@ -7,15 +7,20 @@ export interface FieldOptions<TValue> {
     /** Is the field disabled */
     disabled?: RefParam<boolean>;
 
+    /**
+     * You can override field value
+     */
+    value?(value: TValue): TValue;
+
+    /**
+     * You can validate input on change and return some other value.
+     */
     validate?(value: TValue): TValue | undefined;
 }
 
 export class FormField<TValue> {
     /** Current value of the field */
     readonly value!: TValue;
-
-    /** Field name */
-    readonly key!: string | number;
 
     /** Is the field currently disabled */
     readonly disabled!: boolean;
@@ -48,3 +53,5 @@ export class SingleSelectField<TValue, TItem> extends FormField<TValue> {
     /** Currently selected item */
     readonly selectedItem!: TItem | null;
 }
+
+export interface CustomFormFieldOptions<TValue> extends FieldOptions<TValue> {}
