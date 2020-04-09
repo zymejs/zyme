@@ -1,4 +1,4 @@
-import { RequestQuery, RequestMethod } from './types';
+import { RequestMethod, RequestQuery } from './types';
 
 export interface ApiRequestParamsOptions<TRequest> {
     params?(request: TRequest): RequestQuery | null | undefined;
@@ -6,6 +6,10 @@ export interface ApiRequestParamsOptions<TRequest> {
 
 export interface ApiRequestDataOptions<TRequest> extends ApiRequestParamsOptions<TRequest> {
     data?(request: TRequest): any;
+}
+
+export interface ApiRequestFilesOptions<TRequest> extends ApiRequestParamsOptions<TRequest> {
+    files(request: TRequest): FileList;
 }
 
 export interface ApiRequestHandler<TRequest> {
@@ -32,5 +36,27 @@ export function postJsonRequest<TRequest = void>(
         params: options?.params,
         // if no options provided, send request as data
         data: options != null ? options.data : t => t
+    };
+}
+
+export function postFileUpload<TRequest = FileList>(
+    options?: ApiRequestFilesOptions<TRequest>
+): ApiRequestHandler<TRequest> {
+    return {
+        method: 'POST',
+        params: request => {
+            return options?.params ? options.params(request) : null;
+        },
+        data: request => {
+            const files = options ? options.files(request) : ((request as unknown) as FileList);
+            const formData = new FormData();
+            // tslint:disable-next-line: prefer-for-of
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                formData.append('files[]', file, file.name);
+            }
+
+            return formData;
+        }
     };
 }
