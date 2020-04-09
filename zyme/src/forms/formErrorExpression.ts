@@ -1,5 +1,7 @@
 import jsepParse, * as jsep from 'jsep';
 
+export type FormErrorKey = string | number | boolean | null | undefined | symbol;
+
 export function normalizeErrorExpression(key: string | null | undefined) {
     if (key == null || key === '') {
         return '';
@@ -15,7 +17,7 @@ export function normalizeErrorExpression(key: string | null | undefined) {
 const escapeCharRegex = /\\/g;
 const dotRegex = /\./g;
 
-export function normalizeErrorKey(key: string | number | boolean | null | undefined) {
+export function normalizeErrorKey(key: FormErrorKey) {
     key = key?.toString() ?? '';
 
     return (
