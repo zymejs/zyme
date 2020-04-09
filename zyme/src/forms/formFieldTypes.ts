@@ -123,14 +123,27 @@ function createFieldSingleSelect<T, TKey extends keyof T, TValue extends T[TKey]
 
     if (options.autoSelectFirst != null) {
         const autoSelectFirst = toRef(options.autoSelectFirst);
-        watch(selectedItem, item => {
-            if (!autoSelectFirst.value) {
-                return;
+
+        // if auto select first was set, we may want to select first item in 2 cases:
+        // - current item was nullified
+        // - current item is still null, but collection changed
+        // this trick will cause anything that is used in handler to be observed
+        const selectedItemWithFallback = computed(() => {
+            const selected = selectedItem.value;
+            if (selected != null || !autoSelectFirst.value) {
+                return selected;
             }
 
-            if (item == null && itemsRef.value != null && itemsRef.value.length > 0) {
-                const firstItem = itemsRef.value[0];
-                field.update(itemValue(firstItem));
+            if (itemsRef.value != null) {
+                return itemsRef.value[0];
+            }
+        });
+
+        watch(selectedItemWithFallback, item => {
+            const selected = selectedItem.value;
+            if (!selected && item) {
+                // select the first item
+                field.update(itemValue(item));
             }
         });
     }
