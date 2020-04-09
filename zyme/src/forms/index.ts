@@ -2,8 +2,9 @@ export * from './formModel';
 export * from './formErrorTypes';
 export * from './formTypes';
 export * from './formContext';
-export * from './formFieldTypes';
+
+// we don't want to export FormFieldWrapper, because it's internal
+export { FormField, SingleSelectField, FormModelBase } from './formFieldTypes';
 export * from './formCreate';
-export * from './useForm';
 export * from './useFormField';
 export * from './useFormErrors';

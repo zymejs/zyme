@@ -15,6 +15,13 @@ export function propagateErrors<T>(expr: string, model: T | null, errors: readon
     const errorsForModel: FormModelMetadata['errors'] = {};
 
     for (const error of errors) {
+        if (error.key === expr) {
+            // add this error to the root of the object
+            addErrorForModel('', error);
+            // we do not propagate such errors
+            continue;
+        }
+
         // ignore errors that does not match the prefix
         if (error.key.startsWith(prefix) === false) {
             continue;
@@ -25,13 +32,8 @@ export function propagateErrors<T>(expr: string, model: T | null, errors: readon
 
         const propertyName = getFirstPropertyFromExpression(keyWithoutPrefix);
 
-        let errorsForProperty = errorsForModel[propertyName];
-        if (!errorsForProperty) {
-            errorsForModel[propertyName] = errorsForProperty = [];
-        }
-
         // add this error to the property
-        errorsForProperty.push(error);
+        addErrorForModel(propertyName, error);
 
         // add this error to propagate it further
         errorsToPropagate.push(error);
@@ -57,6 +59,16 @@ export function propagateErrors<T>(expr: string, model: T | null, errors: readon
 
             propagateErrors(propExpr, value, errorsToPropagate);
         }
+    }
+
+    function addErrorForModel(prop: string, error: FormError) {
+        let errorsForProperty = errorsForModel[prop];
+        if (!errorsForProperty) {
+            errorsForModel[prop] = errorsForProperty = [];
+        }
+
+        // add this error to the property
+        errorsForProperty.push(error);
     }
 }
 

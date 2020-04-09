@@ -18,7 +18,11 @@ export function useFormFieldProps<T>(type?: PropType<T>) {
     };
 }
 
-export function useFormField<T>(props: FormFieldProps<T>) {
+export function useFormField<T>(props: FormFieldProps<T> | (() => FormField<T>)) {
+    if (props instanceof Function) {
+        return useFormFieldProxy(props);
+    }
+
     const vm = requireCurrentInstance();
 
     const value = computed(() => {
@@ -38,7 +42,7 @@ export function useFormField<T>(props: FormFieldProps<T>) {
         return props.field?.errors ?? [];
     });
 
-    return createFieldCore(new FormField<T>(), {
+    return createFieldCore<T, FormField<T>>(new FormField<T>(), {
         value,
         disabled,
         errors,
@@ -46,5 +50,14 @@ export function useFormField<T>(props: FormFieldProps<T>) {
             vm.$emit('input', v);
             props.field?.update(v);
         }
+    });
+}
+
+function useFormFieldProxy<T>(field: () => FormField<T>) {
+    return createFieldCore<T, FormField<T>>(new FormField<T>(), {
+        value: computed(() => field().value),
+        disabled: computed(() => field().disabled),
+        errors: computed(() => field().errors),
+        update: v => field().update(v)
     });
 }

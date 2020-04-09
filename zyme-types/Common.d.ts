@@ -20,7 +20,7 @@ declare global {
         name: string;
     }
 
-    type Dictionary<T> = Object & {
+    type Dictionary<T> = {
         [id: string]: T;
         [id: number]: T;
     };
