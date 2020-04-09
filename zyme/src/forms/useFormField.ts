@@ -42,7 +42,7 @@ export function useFormField<T>(props: FormFieldProps<T> | (() => FormField<T>))
         return props.field?.errors ?? [];
     });
 
-    return createFieldCore<T, FormField<T>>(new FormField<T>(), {
+    return createFieldCore(new FormField<T>(), {
         value,
         disabled,
         errors,
@@ -54,7 +54,7 @@ export function useFormField<T>(props: FormFieldProps<T> | (() => FormField<T>))
 }
 
 function useFormFieldProxy<T>(field: () => FormField<T>) {
-    return createFieldCore<T, FormField<T>>(new FormField<T>(), {
+    return createFieldCore(new FormField<T>(), {
         value: computed(() => field().value),
         disabled: computed(() => field().disabled),
         errors: computed(() => field().errors),

@@ -23,6 +23,11 @@ export interface FieldOptions<TValue> {
 }
 
 export class FormField<T> {
+    constructor() {
+        const builder = createFieldBuilder(this);
+        Object.assign(this, builder);
+    }
+
     /** Current value of the field */
     readonly value!: T;
 
@@ -34,106 +39,6 @@ export class FormField<T> {
 
     /** Updates current value of the field */
     readonly update!: (this: void, value: T) => void;
-
-    protected basicField<TKey extends keyof T, TValue extends T[TKey]>(
-        key: TKey | RefParam<TKey>,
-        options?: FieldOptions<TValue>
-    ) {
-        const field = writable(new FormField<TValue>());
-
-        this.prepareField(field, key, options);
-
-        return (reactive(field) as unknown) as FormFieldWrapper<TValue, FormField<TValue>>;
-    }
-
-    protected singleSelectField<TKey extends keyof T, TValue extends T[TKey], TItem>(
-        key: TKey | RefParam<TKey>,
-        options: SingleSelectOptions<TValue, TItem>
-    ): FormFieldWrapper<TValue, SingleSelectField<TValue, TItem>> {
-        const field = writable(new SingleSelectField<TValue, TItem>());
-        this.prepareField(field, key, options);
-
-        const itemsRef = toRef(options.items);
-        const itemValue = options.itemValue ?? (t => (t as unknown) as TValue);
-
-        const items = computed(() => itemsRef.value ?? []);
-
-        const selectedItem = computed(() => {
-            return itemsRef.value?.find(i => itemValue(i) === field.value) ?? null;
-        });
-
-        field.items = unref(items);
-        field.selectedItem = unref(selectedItem);
-
-        if (options.autoSelectFirst != null) {
-            const autoSelectFirst = toRef(options.autoSelectFirst);
-            watch(selectedItem, item => {
-                if (!autoSelectFirst.value) {
-                    return;
-                }
-
-                if (item == null && itemsRef.value != null && itemsRef.value.length > 0) {
-                    const firstItem = itemsRef.value[0];
-                    field.update(itemValue(firstItem));
-                }
-            });
-        }
-
-        return (reactive(field) as unknown) as FormFieldWrapper<
-            TValue,
-            SingleSelectField<TValue, TItem>
-        >;
-    }
-
-    private prepareField<TKey extends keyof T, TValue extends T[TKey]>(
-        field: Writable<FormField<TValue>>,
-        key: TKey | RefParam<TKey>,
-        options?: FieldOptions<TValue>
-    ) {
-        const keyRef = toRef(key);
-        const disabledRef = toRef(options?.disabled ?? false);
-
-        const valueOverride = options?.value;
-        const value = valueOverride
-            ? computed(() => valueOverride((this.value as T)[keyRef.value] as TValue))
-            : computed(() => (this.value as T)[keyRef.value] as TValue);
-        const errors = computed(() => getErrorsForModel(this.value as any, keyRef.value));
-        const disabled = computed(() => disabledRef.value || this.disabled);
-
-        const update = (v: TValue) => {
-            set(this.value, keyRef.value, v);
-        };
-
-        field.value = unref(value);
-        field.errors = unref(errors);
-        field.disabled = unref(disabled);
-        field.update = update;
-
-        const validate = options?.validate;
-        if (validate) {
-            let recursiveCheck = false;
-
-            // if validation handler was set, we want to continously calculate,
-            // what is the valid value for the field
-            // this trick will cause anything that is used in handler to be observed
-            const validated = computed(() => validate(value.value));
-
-            watch(validated, v => {
-                if (recursiveCheck) {
-                    // if was already changed by validation
-                    recursiveCheck = false;
-                    return;
-                }
-
-                if (v !== undefined && v !== value.value) {
-                    // we mark value as valid, because setting new value
-                    // will execute this watcher again, and it may fall into infinite loop
-                    recursiveCheck = true;
-                    update(v);
-                }
-            });
-        }
-    }
 }
 
 export interface SingleSelectOptions<TValue, TItem = unknown> extends FieldOptions<TValue> {
@@ -161,16 +66,125 @@ export class SingleSelectField<TValue, TItem> extends FormField<TValue> {
 export interface CustomFormFieldOptions<TValue> extends FieldOptions<TValue> {}
 
 interface FormFieldBuilder<T> {
-    basicField<TKey extends keyof T, TValue extends T[TKey]>(
-        key: TKey | RefParam<TKey>,
-        options?: FieldOptions<TValue>
-    ): FormFieldWrapper<TValue, FormField<TValue>>;
-
-    singleSelectField<TKey extends keyof T, TValue extends T[TKey], TItem>(
+    fieldSingleSelect<TKey extends keyof T, TValue extends T[TKey], TItem>(
         key: TKey | RefParam<TKey>,
         options: SingleSelectOptions<TValue, TItem>
-    ): FormFieldWrapper<TValue, SingleSelectField<TValue, TItem>>;
+    ): FormFieldWrapper<SingleSelectField<TValue, TItem>>;
+
+    fieldBasic<TKey extends keyof T, TValue extends T[TKey]>(
+        key: TKey | RefParam<TKey>,
+        options?: FieldOptions<TValue>
+    ): FormFieldWrapper<FormField<TValue>>;
 }
 
-export type FormFieldWrapper<TValue, TField extends FormField<TValue>> = TField &
-    FormFieldBuilder<TValue>;
+export type FormFieldWrapper<TField extends FormField<any>> = TField extends FormField<infer TValue>
+    ? TField & FormFieldBuilder<TValue>
+    : never;
+
+function createFieldBuilder<T>(field: FormField<T>): FormFieldBuilder<T> {
+    return {
+        fieldBasic: (key, options) => createFieldBasic(field, key, options),
+        fieldSingleSelect: (key, options) => createFieldSingleSelect(field, key, options)
+    };
+}
+
+function createFieldBasic<T, TKey extends keyof T, TValue extends T[TKey]>(
+    parent: FormField<T>,
+    key: TKey | RefParam<TKey>,
+    options?: FieldOptions<TValue>
+) {
+    const field = writable(new FormField<TValue>());
+
+    prepareField(parent, field, key, options);
+
+    return (reactive(field) as unknown) as FormFieldWrapper<FormField<TValue>>;
+}
+
+function createFieldSingleSelect<T, TKey extends keyof T, TValue extends T[TKey], TItem>(
+    parent: FormField<T>,
+    key: TKey | RefParam<TKey>,
+    options: SingleSelectOptions<TValue, TItem>
+) {
+    const field = writable(new SingleSelectField<TValue, TItem>());
+
+    prepareField(parent, field, key, options);
+
+    const itemsRef = toRef(options.items);
+    const itemValue = options.itemValue ?? (t => (t as unknown) as TValue);
+
+    const items = computed(() => itemsRef.value ?? []);
+
+    const selectedItem = computed(() => {
+        return itemsRef.value?.find(i => itemValue(i) === field.value) ?? null;
+    });
+
+    field.items = unref(items);
+    field.selectedItem = unref(selectedItem);
+
+    if (options.autoSelectFirst != null) {
+        const autoSelectFirst = toRef(options.autoSelectFirst);
+        watch(selectedItem, item => {
+            if (!autoSelectFirst.value) {
+                return;
+            }
+
+            if (item == null && itemsRef.value != null && itemsRef.value.length > 0) {
+                const firstItem = itemsRef.value[0];
+                field.update(itemValue(firstItem));
+            }
+        });
+    }
+
+    return (reactive(field) as unknown) as FormFieldWrapper<SingleSelectField<TValue, TItem>>;
+}
+
+function prepareField<T, TKey extends keyof T, TValue extends T[TKey]>(
+    parent: FormField<T>,
+    field: Writable<FormField<TValue>>,
+    key: TKey | RefParam<TKey>,
+    options?: FieldOptions<TValue>
+) {
+    const keyRef = toRef(key);
+    const disabledRef = toRef(options?.disabled ?? false);
+
+    const valueOverride = options?.value;
+    const value = valueOverride
+        ? computed(() => valueOverride((parent.value as T)[keyRef.value] as TValue))
+        : computed(() => (parent.value as T)[keyRef.value] as TValue);
+    const errors = computed(() => getErrorsForModel(parent.value as any, keyRef.value));
+    const disabled = computed(() => disabledRef.value || parent.disabled);
+
+    const update = (v: TValue) => {
+        set(parent.value, keyRef.value, v);
+    };
+
+    field.value = unref(value);
+    field.errors = unref(errors);
+    field.disabled = unref(disabled);
+    field.update = update;
+
+    const validate = options?.validate;
+    if (validate) {
+        let recursiveCheck = false;
+
+        // if validation handler was set, we want to continously calculate,
+        // what is the valid value for the field
+        // this trick will cause anything that is used in handler to be observed
+        const validated = computed(() => validate(value.value));
+
+        watch(validated, v => {
+            if (recursiveCheck) {
+                // if was already changed by validation
+                recursiveCheck = false;
+                return;
+            }
+
+            if (v !== undefined && v !== value.value) {
+                // we mark value as valid, because setting new value
+                // will execute this watcher again, and it may fall into infinite loop
+                recursiveCheck = true;
+                update(v);
+            }
+        });
+    }
+}

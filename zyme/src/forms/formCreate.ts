@@ -14,24 +14,22 @@ type FormModelProps<T> = {
 
 type FormModelInit<T> = T extends null ? FormModelProps<T> | null : FormModelProps<T>;
 
-export function createForm<T extends FormModelBase>(
-    model: FormModel<T>
-): FormFieldWrapper<T, Form<T>>;
+export function createForm<T extends FormModelBase>(model: FormModel<T>): FormFieldWrapper<Form<T>>;
 export function createForm<T extends FormModelBase>(
     model: FormModelInit<T>
-): FormFieldWrapper<T, Form<T>>;
-export function createForm<T extends FormModelBase>(model: null): FormFieldWrapper<T, Form<T>>;
+): FormFieldWrapper<Form<T>>;
+export function createForm<T extends FormModelBase>(model: null): FormFieldWrapper<Form<T>>;
 export function createForm<T extends FormModelBase>(
     model: FormModelInit<T> | null
-): FormFieldWrapper<T, Form<T>> {
+): FormFieldWrapper<Form<T>> {
     const form = new FormImpl<T>(model);
 
-    return reactive(form as any) as FormFieldWrapper<T, Form<T>>;
+    return reactive(form as any) as FormFieldWrapper<Form<T>>;
 }
 
 export function createFormAsync<T extends {}>(
     fcn: () => Promise<FormModel<T>>
-): FormFieldWrapper<T, Form<T>> {
+): FormFieldWrapper<Form<T>> {
     const form = new FormImpl<T>(null);
 
     // async loading of the form
@@ -39,7 +37,7 @@ export function createFormAsync<T extends {}>(
         form.update(m);
     });
 
-    return (reactive(form) as any) as FormFieldWrapper<T, Form<T>>;
+    return (reactive(form) as any) as FormFieldWrapper<Form<T>>;
 }
 
 class FormImpl<T extends FormModelBase> extends Form<T> {
