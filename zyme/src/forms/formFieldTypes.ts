@@ -29,7 +29,7 @@ export class FormField<T> {
     }
 
     /** Current value of the field */
-    readonly value!: T;
+    value!: T;
 
     /** Is the field currently disabled */
     readonly disabled!: boolean;
@@ -75,17 +75,35 @@ interface FormFieldBuilder<T> {
         key: TKey | RefParam<TKey>,
         options?: FieldOptions<TValue>
     ): FormFieldWrapper<FormField<TValue>>;
+
+    allFieldsBasic(): FormFieldMap<T>;
 }
 
 export type FormFieldWrapper<TField extends FormField<any>> = TField extends FormField<infer TValue>
     ? TField & FormFieldBuilder<TValue>
     : never;
 
+type FormFieldMap<T> = {
+    [K in keyof T]: FormFieldWrapper<FormField<T[K]>>;
+};
+
 function createFieldBuilder<T>(field: FormField<T>): FormFieldBuilder<T> {
     return {
         fieldBasic: (key, options) => createFieldBasic(field, key, options),
-        fieldSingleSelect: (key, options) => createFieldSingleSelect(field, key, options)
+        fieldSingleSelect: (key, options) => createFieldSingleSelect(field, key, options),
+        allFieldsBasic: () => createAllFields(field)
     };
+}
+
+function createAllFields<T>(field: FormField<T>): FormFieldMap<T> {
+    const fields = {} as FormFieldMap<T>;
+
+    const keys = Object.keys(field.value) as (keyof T)[];
+    for (const key of keys) {
+        fields[key] = createFieldBasic(field, key);
+    }
+
+    return fields;
 }
 
 function createFieldBasic<T, TKey extends keyof T, TValue extends T[TKey]>(
@@ -161,15 +179,20 @@ function prepareField<T, TKey extends keyof T, TValue extends T[TKey]>(
     const disabledRef = toRef(options?.disabled ?? false);
 
     const valueOverride = options?.value;
-    const value = valueOverride
-        ? computed(() => valueOverride((parent.value as T)[keyRef.value] as TValue))
-        : computed(() => (parent.value as T)[keyRef.value] as TValue);
-    const errors = computed(() => getErrorsForModel(parent.value as any, keyRef.value));
-    const disabled = computed(() => disabledRef.value || parent.disabled);
 
     const update = (v: TValue) => {
         set(parent.value, keyRef.value, v);
     };
+
+    const value = computed({
+        get: valueOverride
+            ? () => valueOverride((parent.value as T)[keyRef.value] as TValue)
+            : () => (parent.value as T)[keyRef.value] as TValue,
+        set: update
+    });
+
+    const errors = computed(() => getErrorsForModel(parent.value as any, keyRef.value));
+    const disabled = computed(() => disabledRef.value || parent.disabled);
 
     field.value = unref(value);
     field.errors = unref(errors);

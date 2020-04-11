@@ -1,4 +1,4 @@
-import { computed, PropType } from '@vue/composition-api';
+import { computed, PropType, Ref } from '@vue/composition-api';
 
 import { prop, requireCurrentInstance } from '../core';
 import { createFieldCore } from './formFieldCore';
@@ -25,13 +25,21 @@ export function useFormField<T>(props: FormFieldProps<T> | (() => FormField<T>))
 
     const vm = requireCurrentInstance();
 
-    const value = computed(() => {
-        const field = props.field;
-        if (field) {
-            return field.value;
-        }
+    const update = (v: T) => {
+        vm.$emit('input', v);
+        props.field?.update(v);
+    };
 
-        return props.value as T;
+    const value = computed({
+        get() {
+            const field = props.field;
+            if (field) {
+                return field.value;
+            }
+
+            return props.value as T;
+        },
+        set: update
     });
 
     const disabled = computed(() => {
@@ -46,16 +54,16 @@ export function useFormField<T>(props: FormFieldProps<T> | (() => FormField<T>))
         value,
         disabled,
         errors,
-        update: v => {
-            vm.$emit('input', v);
-            props.field?.update(v);
-        }
+        update
     });
 }
 
 function useFormFieldProxy<T>(field: () => FormField<T>) {
     return createFieldCore(new FormField<T>(), {
-        value: computed(() => field().value),
+        value: computed({
+            get: () => field().value,
+            set: v => field().update(v)
+        }),
         disabled: computed(() => field().disabled),
         errors: computed(() => field().errors),
         update: v => field().update(v)

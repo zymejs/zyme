@@ -6,7 +6,7 @@ import { ModalOptions, ModalResult } from './ModalOptions';
 
 @Injectable()
 export class ModalService {
-    private readonly $$stack: Array<ModalEntry<any>> = [];
+    private readonly $$stack: ModalEntry<any>[] = [];
 
     public async open<TModal extends Modal<any, any>>(
         options: ModalOptions<TModal>
@@ -23,7 +23,7 @@ export class ModalService {
         }
     }
 
-    public get stack(): Immutable<Array<ModalEntry<any>>> {
+    public get stack(): Immutable<ModalEntry<any>[]> {
         return this.$$stack;
     }
 }
