@@ -66,15 +66,15 @@ export class SingleSelectField<TValue, TItem> extends FormField<TValue> {
 export interface CustomFormFieldOptions<TValue> extends FieldOptions<TValue> {}
 
 interface FormFieldBuilder<T> {
-    fieldSingleSelect<TKey extends keyof T, TValue extends T[TKey], TItem>(
+    fieldSingleSelect<TKey extends keyof T, TItem>(
         key: TKey | RefParam<TKey>,
-        options: SingleSelectOptions<TValue, TItem>
-    ): FormFieldWrapper<SingleSelectField<TValue, TItem>>;
+        options: SingleSelectOptions<T[TKey], TItem>
+    ): FormFieldWrapper<SingleSelectField<T[TKey], TItem>>;
 
-    fieldBasic<TKey extends keyof T, TValue extends T[TKey]>(
+    fieldBasic<TKey extends keyof T>(
         key: TKey | RefParam<TKey>,
-        options?: FieldOptions<TValue>
-    ): FormFieldWrapper<FormField<TValue>>;
+        options?: FieldOptions<T[TKey]>
+    ): FormFieldWrapper<FormField<T[TKey]>>;
 
     allFieldsBasic(): FormFieldMap<T>;
 }
@@ -106,29 +106,29 @@ function createAllFields<T>(field: FormField<T>): FormFieldMap<T> {
     return fields;
 }
 
-function createFieldBasic<T, TKey extends keyof T, TValue extends T[TKey]>(
+function createFieldBasic<T, TKey extends keyof T>(
     parent: FormField<T>,
     key: TKey | RefParam<TKey>,
-    options?: FieldOptions<TValue>
+    options?: FieldOptions<T[TKey]>
 ) {
-    const field = writable(new FormField<TValue>());
+    const field = writable(new FormField<T[TKey]>());
 
     prepareField(parent, field, key, options);
 
-    return (reactive(field) as unknown) as FormFieldWrapper<FormField<TValue>>;
+    return (reactive(field) as unknown) as FormFieldWrapper<FormField<T[TKey]>>;
 }
 
-function createFieldSingleSelect<T, TKey extends keyof T, TValue extends T[TKey], TItem>(
+function createFieldSingleSelect<T, TKey extends keyof T, TItem>(
     parent: FormField<T>,
     key: TKey | RefParam<TKey>,
-    options: SingleSelectOptions<TValue, TItem>
+    options: SingleSelectOptions<T[TKey], TItem>
 ) {
-    const field = writable(new SingleSelectField<TValue, TItem>());
+    const field = writable(new SingleSelectField<T[TKey], TItem>());
 
     prepareField(parent, field, key, options);
 
     const itemsRef = toRef(options.items);
-    const itemValue = options.itemValue ?? (t => (t as unknown) as TValue);
+    const itemValue = options.itemValue ?? (t => (t as unknown) as T[TKey]);
 
     const items = computed(() => itemsRef.value ?? []);
 
@@ -166,7 +166,7 @@ function createFieldSingleSelect<T, TKey extends keyof T, TValue extends T[TKey]
         });
     }
 
-    return (reactive(field) as unknown) as FormFieldWrapper<SingleSelectField<TValue, TItem>>;
+    return (reactive(field) as unknown) as FormFieldWrapper<SingleSelectField<T[TKey], TItem>>;
 }
 
 function prepareField<T, TKey extends keyof T, TValue extends T[TKey]>(
