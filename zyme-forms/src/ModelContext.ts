@@ -1,4 +1,4 @@
-import { isFunction } from 'lodash';
+import isFunction from 'lodash/isFunction';
 
 import { Model, ModelGeneric } from './Model';
 
@@ -10,7 +10,7 @@ export class ModelContext<T extends Model = ModelGeneric> {
             Object.defineProperty(this, 'model', {
                 configurable: true,
                 enumerable: true,
-                get: modelOrGetter
+                get: modelOrGetter,
             });
         } else {
             this.model = modelOrGetter as T;

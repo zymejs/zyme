@@ -1,7 +1,7 @@
 import { interfaces } from 'inversify';
 import { inject as inversifyInject, optional as inversifyOptional } from 'inversify';
-import { isPlainObject } from 'lodash';
-import { isSymbol } from 'lodash';
+import isPlainObject from 'lodash/isPlainObject';
+import isSymbol from 'lodash/isSymbol';
 
 import 'reflect-metadata';
 import Vue, { ComponentOptions } from 'vue';
@@ -56,10 +56,10 @@ export function IocInject<T>(
 
         if (target instanceof Vue) {
             // setup ioc configuration for this component
-            reflection.addDecorator(target, options => {
+            reflection.addDecorator(target, (options) => {
                 setInjectOptions(options, propertyKey as string, {
                     identifier: id,
-                    optional: optional
+                    optional: optional,
                 });
             });
 
@@ -79,7 +79,7 @@ export function IocRegister(
     propertyKey: string | symbol,
     descriptor: TypedPropertyDescriptor<(container: IocContainer) => void>
 ) {
-    reflection.addDecorator(target, o => {
+    reflection.addDecorator(target, (o) => {
         if (!descriptor.value) {
             return;
         }
@@ -122,15 +122,15 @@ export function IocProvide<T>(
         const id = assertIdentifier(identifier);
 
         // setup ioc provide configuration for this component
-        reflection.addDecorator(target, options => {
+        reflection.addDecorator(target, (options) => {
             setProvideOptions(options, propertyKey as string, {
                 identifier: id,
-                resolve: resolve as Constructor<T>
+                resolve: resolve as Constructor<T>,
             });
 
             if (resolve) {
                 setInjectOptions(options, propertyKey as string, {
-                    identifier: id
+                    identifier: id,
                 });
             }
         });

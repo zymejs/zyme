@@ -1,6 +1,6 @@
 import { computed, isRef, reactive, ref, watch, Ref } from '@vue/composition-api';
 import axios, { CancelTokenSource } from 'axios';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 
 import { unref } from '../core';
 import { ApiEndpoint } from './apiEndpoint';
@@ -55,7 +55,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
     const debounceTime = opts.debounce?.time ?? 300;
     const debouncedLoad = debounce(loadData, debounceTime, {
         leading: opts.debounce?.leading ?? true,
-        trailing: opts.debounce?.trailing ?? true
+        trailing: opts.debounce?.trailing ?? true,
     });
 
     watch(requestRef, debouncedLoad, { deep: true });
@@ -66,7 +66,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
         reload() {
             debouncedLoad();
             return debouncedLoad.flush();
-        }
+        },
     }) as DataSource<TResult>;
 
     // function used to load the data
@@ -90,7 +90,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
                 endpoint,
                 request,
                 interceptor,
-                cancel: cancel.token
+                cancel: cancel.token,
             });
 
             pendingPromise = promise;
