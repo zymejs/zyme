@@ -1,9 +1,10 @@
 import { ref, Ref } from '@vue/composition-api';
 
-export function refAsync<T>(fcn: () => Promise<T>): Ref<T | null> {
+export function refAsync<T>(param: (() => Promise<T>) | Promise<T>): Ref<T | null> {
     const reference = ref<T>(null);
+    const promise = param instanceof Function ? param() : param;
 
-    fcn().then(result => {
+    promise.then((result) => {
         reference.value = result;
     });
 

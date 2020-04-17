@@ -8,7 +8,7 @@
     "main": "./src/index.ts",
     "scripts": {},
     "dependencies": {
-        "css-element-queries": "^1.2.3",
+        "css-element-queries": "~1.2.3",
         "lodash": "~4.17.11",
         "vue": "~2.6.10",
         "zyme": "~1.0.0"
