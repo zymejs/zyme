@@ -2,7 +2,7 @@ import Vue from 'vue';
 
 import { ValidationError } from './formErrorTypes';
 
-export function FormsPlugin(vue: typeof Vue) {
+export function ZymeFormsPlugin(vue: typeof Vue) {
     const oldHandler = vue.config.errorHandler;
 
     vue.config.errorHandler = (err, vm, info) => {

@@ -1,8 +1,9 @@
-import { computed, PropType } from '@vue/composition-api';
-import { prop, requireCurrentInstance } from 'zyme';
+import { computed, PropType, watch } from '@vue/composition-api';
+import { prop, requireCurrentInstance, injectService } from 'zyme';
 
 import { createFieldCore } from './formFieldCore';
 import { FormField } from './formFieldTypes';
+import { FormContext } from './formContext';
 
 export interface FormFieldProps<T> {
     readonly field?: FormField<T> | null;
@@ -19,11 +20,34 @@ export function useFormFieldProps<T>(type?: PropType<T>) {
 }
 
 export function useFormField<T>(props: FormFieldProps<T> | (() => FormField<T>)) {
+    const vm = requireCurrentInstance();
+    const form = injectService(FormContext, { optional: true })?.form;
+    const field = useFormFieldCore(props, vm);
+
+    if (form) {
+        watch(
+            () => form.submitCount,
+            () => {
+                const hasErrors = field.errors.length > 0;
+
+                if (hasErrors) {
+                    console.log(vm.$el);
+                    vm.$el.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            }
+        );
+    }
+
+    return field;
+}
+
+function useFormFieldCore<T>(props: FormFieldProps<T> | (() => FormField<T>), vm: Vue) {
     if (props instanceof Function) {
         return useFormFieldProxy(props);
     }
-
-    const vm = requireCurrentInstance();
 
     const update = (v: T) => {
         vm.$emit('input', v);

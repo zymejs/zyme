@@ -50,8 +50,9 @@ class FormImpl<T extends FormModelBase> extends Form<T> {
         form.update = v => (form.value = v);
     }
 
-    public readonly disabled: boolean = false;
-    public readonly allErrors: readonly FormError[] = [];
+    public disabled: boolean = false;
+    public allErrors: readonly FormError[] = [];
+    public submitCount: number = 0;
 
     public async submit<R>(action: FormSubmit<T, R>): Promise<R> {
         const model = this.value;
@@ -59,7 +60,7 @@ class FormImpl<T extends FormModelBase> extends Form<T> {
             throw new Error('No model is set to submit');
         }
         try {
-            writable(this).disabled = true;
+            this.disabled = true;
 
             const result = await action(model as NonNullable<T>);
             this.clearErrors();
@@ -71,7 +72,8 @@ class FormImpl<T extends FormModelBase> extends Form<T> {
             }
             throw error;
         } finally {
-            writable(this).disabled = false;
+            this.disabled = false;
+            this.submitCount++;
         }
     }
 

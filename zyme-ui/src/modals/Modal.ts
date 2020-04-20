@@ -64,12 +64,14 @@ export function useModal() {
     const currentInstance = requireCurrentInstance();
     const localModals: ModalHandler<unknown>[] = [];
 
-    onUnmounted(() => {
-        // close all modals when component is unmounted
-        for (const m of localModals) {
-            m.cancel();
-        }
-    });
+    // TODO: think about something different
+    // solution below makes it impossible to have modal opened from tooltip
+    // onUnmounted(() => {
+    //     // close all modals when component is unmounted
+    //     for (const m of localModals) {
+    //         m.cancel();
+    //     }
+    // });
 
     return {
         open<T extends ModalComponentOptions<any, any>>(options: OpenModalOptions<T>) {
