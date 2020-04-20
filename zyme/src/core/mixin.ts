@@ -1,6 +1,6 @@
 import { reactive, SetupContext } from '@vue/composition-api';
 import { UnwrapRef } from '@vue/composition-api/dist/reactivity';
-import { isFunction } from 'lodash';
+import isFunction from 'lodash/isFunction';
 
 import { PropTypes } from './reexports';
 

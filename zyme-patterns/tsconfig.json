@@ -1,10 +1,7 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "zyme": ["../zyme/src"]
-        }
+        "baseUrl": "."
     },
     "include": ["./**/*.ts"]
 }
