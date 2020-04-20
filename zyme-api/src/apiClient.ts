@@ -1,6 +1,6 @@
 import { ref, Ref } from '@vue/composition-api';
+import { Form, FormModelBase } from 'zyme-forms';
 
-import { Form, FormModelBase } from '../forms';
 import { ApiEndpoint } from './apiEndpoint';
 import { injectApiInterceptor } from './apiInterceptor';
 import { callEndpoint } from './callEndpoint';

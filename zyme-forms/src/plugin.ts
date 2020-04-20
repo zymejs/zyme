@@ -1,5 +1,6 @@
 import Vue from 'vue';
-import { ValidationError } from 'zyme/forms';
+
+import { ValidationError } from './formErrorTypes';
 
 export function FormsPlugin(vue: typeof Vue) {
     const oldHandler = vue.config.errorHandler;

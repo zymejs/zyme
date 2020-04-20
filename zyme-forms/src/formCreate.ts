@@ -1,4 +1,4 @@
-import { computed, reactive, ref, Ref } from '@vue/composition-api';
+import { computed, reactive, Ref } from '@vue/composition-api';
 import { unref, writable } from 'zyme';
 
 import { getErrorsForModel, normalizeErrorExpression } from './formErrorHelpers';

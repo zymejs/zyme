@@ -1,8 +1,8 @@
 import { computed, isRef, reactive, ref, watch, Ref } from '@vue/composition-api';
 import axios, { CancelTokenSource } from 'axios';
 import { debounce } from 'lodash';
+import { unref } from 'zyme';
 
-import { unref } from '../core';
 import { ApiEndpoint } from './apiEndpoint';
 import { injectApiInterceptor } from './apiInterceptor';
 import { callEndpoint } from './callEndpoint';

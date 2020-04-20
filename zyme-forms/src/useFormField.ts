@@ -1,6 +1,6 @@
-import { computed, PropType, Ref } from '@vue/composition-api';
+import { computed, PropType } from '@vue/composition-api';
+import { prop, requireCurrentInstance } from 'zyme';
 
-import { prop, requireCurrentInstance } from '../core';
 import { createFieldCore } from './formFieldCore';
 import { FormField } from './formFieldTypes';
 
