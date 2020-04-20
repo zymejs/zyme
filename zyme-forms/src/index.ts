@@ -7,5 +7,5 @@ export * from './formContext';
 export { FormField, SingleSelectField, FormModelBase } from './formFieldTypes';
 export * from './formCreate';
 export * from './useFormField';
-export * from './useFormErrors';
+export * from './useFormScrollToError';
 export * from './plugin';
