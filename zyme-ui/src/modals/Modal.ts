@@ -1,5 +1,6 @@
 import Vue, { ComponentOptions } from 'vue';
-import { onUnmounted, prop, requireCurrentInstance, CancelError, PropTypes } from 'zyme';
+import { getCurrentInstance } from '@vue/composition-api';
+import { prop, CancelError, PropTypes } from 'zyme';
 
 import { getScrollBarWidth } from '../utils';
 
@@ -39,7 +40,7 @@ interface ModalHandler<T> {
     cancel(): void;
 }
 
-const allModals: ModalHandler<unknown>[] = [];
+const modals: ModalHandler<unknown>[] = [];
 
 export function useModalProps<T = void>() {
     return {
@@ -61,17 +62,7 @@ interface OpenModalOptionsWithProps<T> {
 }
 
 export function useModal() {
-    const currentInstance = requireCurrentInstance();
-    const localModals: ModalHandler<unknown>[] = [];
-
-    // TODO: think about something different
-    // solution below makes it impossible to have modal opened from tooltip
-    // onUnmounted(() => {
-    //     // close all modals when component is unmounted
-    //     for (const m of localModals) {
-    //         m.cancel();
-    //     }
-    // });
+    const currentInstance = getCurrentInstance();
 
     return {
         open<T extends ModalComponentOptions<any, any>>(options: OpenModalOptions<T>) {
@@ -90,13 +81,12 @@ export function useModal() {
                     }
                 };
 
-                allModals.push(handler);
-                localModals.push(handler);
+                modals.push(handler);
 
                 updateBodyMargin();
 
                 const vm = new Vue({
-                    parent: currentInstance,
+                    parent: currentInstance ?? undefined,
                     render: h =>
                         h(view, {
                             props: {
@@ -108,20 +98,23 @@ export function useModal() {
 
                 vm.$mount();
 
-                currentInstance.$el.ownerDocument?.body.appendChild(vm.$el);
+                const body = currentInstance?.$el.ownerDocument?.body ?? document.body;
+                body.appendChild(vm.$el);
 
                 function closeModal() {
                     vm.$destroy();
                     vm.$el.remove();
                     // remove it from modal queue
-                    allModals.splice(allModals.indexOf(handler), 1);
-                    localModals.splice(localModals.indexOf(handler), 1);
+                    modals.splice(modals.indexOf(handler), 1);
 
                     updateBodyMargin();
                 }
             });
 
             return promise;
+        },
+        closeAll() {
+            modals.forEach(m => m.cancel());
         }
     };
 }
@@ -155,7 +148,7 @@ let originalBodyMargin: string | null = null;
 let originalBodyOverflow: string | null = null;
 
 function updateBodyMargin() {
-    if (allModals.length) {
+    if (modals.length) {
         originalBodyOverflow = document.body.style.overflowY;
         originalBodyMargin = document.body.style.marginRight;
 

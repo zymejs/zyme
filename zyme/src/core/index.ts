@@ -6,3 +6,4 @@ export * from './service';
 export * from './mixin';
 export * from './useAsync';
 export * from './CancelError';
+export * from './component';

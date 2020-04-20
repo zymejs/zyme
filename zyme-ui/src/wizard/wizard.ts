@@ -1,5 +1,4 @@
 import { getCurrentInstance, Ref } from '@vue/composition-api';
-import Vue, { ComponentOptions } from 'vue';
 import {
     assert,
     computed,
@@ -8,21 +7,14 @@ import {
     reactive,
     ref,
     unref,
-    writable
+    writable,
+    unwrapComponentDefinition,
+    ComponentDefinitionInput,
+    ComponentDefinition
 } from 'zyme';
 import { Prototype, Typed } from 'zyme-patterns';
 
 import { useVirtualHistory } from '../history';
-
-// tslint:disable-next-line: no-any
-type WizardViewBase = ComponentOptions<Vue, any, any, any, any, any>;
-
-type WizardStepView = WizardViewBase | (() => Promise<WizardViewBase>);
-
-type WizardStepViewOptions =
-    | WizardViewBase
-    | (() => Promise<{ default: WizardViewBase }>)
-    | Promise<{ default: WizardViewBase }>;
 
 export interface WizardStep<T = unknown> {
     /** Reactive state of the step */
@@ -37,7 +29,7 @@ export interface WizardStepAsync<T = unknown> extends WizardStep<T | null> {
 }
 
 export interface WizardStepOptions {
-    view: WizardStepViewOptions;
+    view: ComponentDefinitionInput;
     artifacts?: Typed[];
 }
 
@@ -51,7 +43,7 @@ export interface WizardStepContext {
 }
 
 interface WizardStepWrapper<T = unknown> {
-    readonly view: WizardStepView;
+    readonly view: ComponentDefinition;
     readonly step: WizardStep<T> | null;
     readonly artifacts: readonly Typed[];
     readonly canGoBack: boolean;
@@ -121,7 +113,7 @@ export class Wizard {
         const top = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
 
         history.push({
-            view: unwrapWizardView(options.view),
+            view: unwrapComponentDefinition(options.view),
             canGoBack: canGoBack,
             step: null,
             artifacts: options.artifacts ?? [],
@@ -237,19 +229,6 @@ export function useWizardStepAsync<T>(factory: WizardStateFactoryAsync<T>): Wiza
     }
 
     return current.step as WizardStepAsync<T>;
-}
-
-function unwrapWizardView(view: WizardStepViewOptions): WizardStepView {
-    // unwrap the view promise
-    if (view instanceof Promise) {
-        return () => view.then(v => v.default);
-    }
-
-    if (view instanceof Function) {
-        return () => view().then(v => v.default);
-    }
-
-    return view;
 }
 
 function createState<T>(wizard: Wizard, stateFactory: WizardStateFactory<T>) {
