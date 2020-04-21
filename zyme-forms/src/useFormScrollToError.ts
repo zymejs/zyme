@@ -29,7 +29,12 @@ export function useFormScrollToError<T>(field: () => FormField<T>) {
 }
 
 function scrollToError(vm: Vue) {
-    const top = (vm.$el as HTMLElement).offsetTop;
+    const el = vm.$el as HTMLElement | null;
+    if (!el) {
+        return;
+    }
+
+    const top = el.offsetTop;
 
     if (scrollTo && scrollTo.top < top) {
         return;
