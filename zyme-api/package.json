@@ -7,15 +7,15 @@
     "version": "1.0.0",
     "main": "./src/index.ts",
     "dependencies": {
-        "@vue/composition-api": "^0.5.0",
-        "axios": "^0.19.2",
+        "@vue/composition-api": "~0.5.0",
+        "axios": "~0.19.2",
         "lodash": "~4.17.11",
         "vue": "~2.6.10",
         "zyme": "~1.0.0",
         "zyme-forms": "~1.0.0"
     },
     "devDependencies": {
-        "@types/lodash": "~4.14.149",
+        "@types/lodash": "~4.14.150",
         "@types/zyme": "~1.0.0",
         "tslint": "~6.1.1",
         "typescript": "~3.8.3",
