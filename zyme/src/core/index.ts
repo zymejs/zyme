@@ -4,5 +4,6 @@ export * from './helpers';
 export * from './reexports';
 export * from './service';
 export * from './mixin';
-export * from './refAsync';
+export * from './useAsync';
 export * from './CancelError';
+export * from './component';

@@ -46,3 +46,11 @@ export type Refs<Data> = {
 export function toRefs<T extends {}>(obj: T): Refs<T> {
     return toRefsImport(obj);
 }
+
+export function assert<T>(value: T | undefined | null): Exclude<T, undefined | null> {
+    if (value == null) {
+        throw new Error('No value given');
+    }
+
+    return value as Exclude<T, undefined | null>;
+}

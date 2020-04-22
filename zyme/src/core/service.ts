@@ -1,9 +1,15 @@
 import { inject, provide, reactive } from '@vue/composition-api';
 
-export function injectService<T>(service: Constructor<T>): T {
+export function injectService<T>(service: Constructor<T>): T;
+export function injectService<T>(service: Constructor<T>, opts: { optional: boolean }): T | null;
+export function injectService<T>(service: Constructor<T>, opts?: { optional: boolean }): T | null {
     const symbol = getServiceSymbol(service);
-    const instance = inject<T>(symbol);
+    const instance = inject<T | null>(symbol, null);
     if (!instance) {
+        if (opts?.optional) {
+            return null;
+        }
+
         throw new Error(`Service ${service.name} was not registered`);
     }
 

@@ -1,7 +1,0 @@
-webpack.config.js
-test
-src
-karma.*
-webpack.*
-tsconfig.*
-tslint.json

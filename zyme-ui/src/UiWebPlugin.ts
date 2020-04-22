@@ -1,13 +1,7 @@
 import Vue from 'vue';
 
-import { scrollTo } from './methods/ScrollTo';
+import { autofocus } from './directives';
 
-declare module 'vue/types/vue' {
-    interface Vue {
-        $scrollTo(element: Element | Vue): void;
-    }
-}
-
-export function UiWebPlugin(vue: typeof Vue) {
-    vue.prototype.$scrollTo = scrollTo;
+export function ZymeUiPlugin(vue: typeof Vue) {
+    vue.directive('autofocus', autofocus);
 }
