@@ -1,4 +1,5 @@
 import { getCurrentInstance, Ref } from '@vue/composition-api';
+import { ComponentOptions } from 'vue';
 import {
     assert,
     computed,
@@ -10,7 +11,8 @@ import {
     writable,
     unwrapComponentDefinition,
     ComponentDefinitionInput,
-    ComponentDefinition
+    ComponentDefinition,
+    PropTypes
 } from 'zyme';
 import { Prototype, Typed } from 'zyme-patterns';
 
@@ -19,23 +21,42 @@ import { useVirtualHistory } from '../history';
 export interface WizardStep<T = unknown> {
     /** Reactive state of the step */
     readonly state: T;
-    next(options: WizardNextStepOptions): void;
+    next<TNext>(options: WizardStepOptions<TNext>): void;
     back(): void;
 }
+
+type WizardStepViewOptions<TProps = void> = ComponentOptions<Vue, any, any, any, any, TProps>;
+
+type WizardStepView<T extends WizardStepViewOptions<any>> =
+    | T
+    | (() => Promise<{ default: T }>)
+    | Promise<{ default: T }>;
+
+type WizardStepProps<T> = T extends WizardStepViewOptions<infer TProps> ? TProps : {};
+type WizardStepPropsInput<T> = {
+    [K in keyof WizardStepProps<T>]: WizardStepProps<T>[K] | Readonly<Ref<WizardStepProps<T>[K]>>;
+};
 
 export interface WizardStepAsync<T = unknown> extends WizardStep<T | null> {
     readonly ready: boolean;
     readonly promise: Promise<T>;
 }
 
-export interface WizardStepOptions {
-    view: ComponentDefinitionInput;
+interface WizardStepOptionsBase<T> {
+    view: WizardStepView<T>;
     artifacts?: Typed[];
-}
-
-export interface WizardNextStepOptions extends WizardStepOptions {
     canGoBack?: boolean;
 }
+
+interface WizardStepOptionsWithProps<T> extends WizardStepOptionsBase<T> {
+    props: WizardStepPropsInput<T>;
+}
+
+export type WizardStepOptions<T extends WizardStepView<any>> = keyof WizardStepProps<
+    T
+> extends never
+    ? WizardStepOptionsBase<T>
+    : WizardStepOptionsWithProps<T>;
 
 export interface WizardStepContext {
     getArtifact<T extends Typed>(type: Prototype<T>): Immutable<T> | null;
@@ -50,6 +71,7 @@ interface WizardStepWrapper<T = unknown> {
     readonly historyToken: symbol | null;
     readonly scrollY: number;
     readonly scrollX: number;
+    readonly props: any;
 }
 
 export function useWizard(options?: WizardOptions) {
@@ -62,8 +84,6 @@ export interface WizardOptions {
      * True by default.
      */
     useHistory?: boolean;
-
-    firstStep?: WizardStepOptions;
 }
 
 export class Wizard {
@@ -77,10 +97,6 @@ export class Wizard {
         } else {
             this.virtualHistory = null;
         }
-
-        if (options.firstStep) {
-            this.next(options.firstStep);
-        }
     }
 
     public get currentStep(): WizardStepWrapper | null {
@@ -91,7 +107,7 @@ export class Wizard {
         return this.currentStep?.view;
     }
 
-    public next(options: WizardNextStepOptions): void {
+    public next<T>(options: WizardStepOptions<T>): void {
         const history = writable(this.history);
         const canGoBack = history.length > 0 && options.canGoBack !== false;
 
@@ -111,6 +127,7 @@ export class Wizard {
         const doc = document.documentElement;
         const left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
         const top = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+        const props = (options as WizardStepOptionsWithProps<T>).props;
 
         history.push({
             view: unwrapComponentDefinition(options.view),
@@ -119,7 +136,8 @@ export class Wizard {
             artifacts: options.artifacts ?? [],
             historyToken: historyToken ?? null,
             scrollX: left,
-            scrollY: top
+            scrollY: top,
+            props: props ? reactive(props) : null
         });
     }
 
