@@ -1,4 +1,4 @@
-import { getCurrentInstance, Ref } from '@vue/composition-api';
+import { getCurrentInstance, Ref, set } from '@vue/composition-api';
 import { ComponentOptions } from 'vue';
 import {
     assert,
@@ -8,11 +8,9 @@ import {
     reactive,
     ref,
     unref,
-    writable,
     unwrapComponentDefinition,
-    ComponentDefinitionInput,
+    writable,
     ComponentDefinition,
-    PropTypes
 } from 'zyme';
 import { Prototype, Typed } from 'zyme-patterns';
 
@@ -22,6 +20,7 @@ export interface WizardStep<T = unknown> {
     /** Reactive state of the step */
     readonly state: T;
     next<TNext>(options: WizardStepOptions<TNext>): void;
+    replace<TNext>(options: WizardStepOptions<TNext>): void;
     back(): void;
 }
 
@@ -108,13 +107,23 @@ export class Wizard {
     }
 
     public next<T>(options: WizardStepOptions<T>): void {
+        this.setStep(this.history.length, options);
+    }
+
+    public replace<T>(options: WizardStepOptions<T>): void {
+        this.setStep(this.history.length - 1, options);
+    }
+
+    private setStep<T>(index: number, options: WizardStepOptions<T>) {
+        index = Math.max(index, 0);
+
         const history = writable(this.history);
-        const canGoBack = history.length > 0 && options.canGoBack !== false;
+        const canGoBack = index > 0 && options.canGoBack !== false;
 
         let historyToken: symbol | undefined;
 
         // There's no need to initiate virtual history on first state.
-        if (history.length > 0) {
+        if (index > 0) {
             historyToken = this.virtualHistory?.pushState(() => {
                 if (options.canGoBack === false) {
                     this.preventGoBackCallback();
@@ -129,7 +138,7 @@ export class Wizard {
         const top = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
         const props = (options as WizardStepOptionsWithProps<T>).props;
 
-        history.push({
+        const step: WizardStepWrapper<T> = {
             view: unwrapComponentDefinition(options.view),
             canGoBack: canGoBack,
             step: null,
@@ -137,8 +146,10 @@ export class Wizard {
             historyToken: historyToken ?? null,
             scrollX: left,
             scrollY: top,
-            props: props ? reactive(props) : null
-        });
+            props: props ? reactive(props) : null,
+        };
+
+        set(this.history, index, step);
     }
 
     public back(): boolean {
@@ -215,7 +226,8 @@ export function useWizardStep<T>(factory: WizardStateFactorySync<T>): WizardStep
         current.step = reactive<WizardStep<T>>({
             state: createState(wizard, factory) as T,
             next: wizard.next.bind(wizard),
-            back: wizard.back.bind(wizard)
+            replace: wizard.replace.bind(wizard),
+            back: wizard.back.bind(wizard),
         });
     }
 
@@ -235,14 +247,15 @@ export function useWizardStepAsync<T>(factory: WizardStateFactoryAsync<T>): Wiza
         const statePromise = createState(wizard, factory) as Promise<T>;
         const stateReady = computed(() => stateRef.value != null);
 
-        statePromise.then(s => (stateRef.value = s));
+        statePromise.then((s) => (stateRef.value = s));
 
         current.step = reactive<WizardStepAsync<T>>({
             state: unref(stateRef),
             promise: statePromise,
             ready: unref(stateReady),
             next: wizard.next.bind(wizard),
-            back: wizard.back.bind(wizard)
+            replace: wizard.replace.bind(wizard),
+            back: wizard.back.bind(wizard),
         });
     }
 
@@ -253,8 +266,8 @@ function createState<T>(wizard: Wizard, stateFactory: WizardStateFactory<T>) {
     const duringInit = true;
 
     const ctx: WizardStepContext = {
-        getArtifact: proto => getArtifact(wizard, proto),
-        requireArtifact: proto => requireArtifact(wizard, proto, duringInit)
+        getArtifact: (proto) => getArtifact(wizard, proto),
+        requireArtifact: (proto) => requireArtifact(wizard, proto, duringInit),
     };
 
     return stateFactory(ctx);
