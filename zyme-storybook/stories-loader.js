@@ -25,14 +25,13 @@ module.exports = function(source) {
     const name = category ? `${category}|${component}` : component;
 
     let storyScript = `
-const { withStorySource } = require('@storybook/addon-storysource');
 import { storiesOf } from '@storybook/vue';
 
 const src = ${JSON.stringify(source)};
 const story = require('!!vue-loader!./${fileName}.vue').default;
     
 storiesOf('${name}', module)
-    .addDecorator(withStorySource(src))
+    .addParameters({ storySource: { source: src }})
     .add('${story}', () => story);
 `;
 
