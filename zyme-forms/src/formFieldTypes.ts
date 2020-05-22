@@ -125,7 +125,7 @@ function createFieldSingleSelect<T, TKey extends keyof T, TItem>(
 ) {
     const field = writable(new SingleSelectField<T[TKey], TItem>());
 
-    prepareField(parent, field, key, options);
+    const { value, update } = prepareField(parent, field, key, options);
 
     const itemsRef = toRef(options.items);
     const itemValue = options.itemValue ?? (t => (t as unknown) as T[TKey]);
@@ -133,7 +133,7 @@ function createFieldSingleSelect<T, TKey extends keyof T, TItem>(
     const items = computed(() => itemsRef.value ?? []);
 
     const selectedItem = computed(() => {
-        return itemsRef.value?.find(i => itemValue(i) === field.value) ?? null;
+        return itemsRef.value?.find(i => itemValue(i) === value.value) ?? null;
     });
 
     field.items = unref(items);
@@ -161,7 +161,7 @@ function createFieldSingleSelect<T, TKey extends keyof T, TItem>(
             const selected = selectedItem.value;
             if (!selected && item) {
                 // select the first item
-                field.update(itemValue(item));
+                update(itemValue(item));
             }
         });
     }
@@ -223,4 +223,11 @@ function prepareField<T, TKey extends keyof T, TValue extends T[TKey]>(
             }
         });
     }
+
+    return {
+        value,
+        errors,
+        disabled,
+        update
+    };
 }

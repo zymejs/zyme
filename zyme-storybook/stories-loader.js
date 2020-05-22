@@ -1,55 +1,54 @@
+const yaml = require('js-yaml');
+const fs = require('fs');
 const path = require('path');
-const { parseQuery } = require('loader-utils');
-
-const storyRegex = /^(([\w-_]*)\.)?([\w-_]*)\.([\w-_]*)\.story$/;
 
 module.exports = function(source) {
-    this.cacheable && this.cacheable();
+    const callback = this.async();
+    const dirPath = path.dirname(this.resourcePath);
 
-    if (this.resourceQuery) {
-        const query = parseQuery(this.resourceQuery);
-        if (query.vue) {
-            return source;
+    const defs = yaml.safeLoad(source);
+    const title = defs.title;
+
+    let result = `
+        export default {
+            title: '${title}'
+        };
+    `;
+
+    const promises = [];
+
+    if (defs.stories) {
+        let i = 0;
+        for (const storyName of Object.keys(defs.stories)) {
+            const story = defs.stories[storyName];
+            const storyIndex = i;
+            const storyPath = path.resolve(dirPath, story);
+
+            this.addDependency(storyPath);
+
+            const promise = fs.promises.readFile(storyPath, 'utf-8').then(src => {
+                result += `\n
+                import StoryImport_${storyIndex} from '${story}';
+                export const Story_${storyIndex} = () => StoryImport_${storyIndex};
+                Story_${storyIndex}.story = {
+                    name: '${storyName}',
+                    parameters: {
+                        storySource: {
+                            source: ${JSON.stringify(src)},
+                        }
+                    }
+                }
+            `;
+            });
+
+            promises.push(promise);
+
+            i++;
         }
     }
 
-    const filePath = this.resourcePath;
-    const fileName = path.basename(filePath, '.vue');
-
-    const match = fileName.match(storyRegex);
-
-    const category = match[2];
-    const component = getStoryName(match[3]);
-    const story = getStoryName(match[4]);
-
-    const name = category ? `${category}|${component}` : component;
-
-    let storyScript = `
-import { storiesOf } from '@storybook/vue';
-
-const src = ${JSON.stringify(source)};
-const story = require('!!vue-loader!./${fileName}.vue').default;
-    
-storiesOf('${name}', module)
-    .addParameters({ storySource: { source: src }})
-    .add('${story}', () => story);
-`;
-
-    return storyScript;
+    Promise.all(promises).then(
+        () => callback(null, result),
+        err => callback(err)
+    );
 };
-
-function getStoryName(name) {
-    // first letter will always be upper case
-    let result = name[0].toUpperCase();
-    for (let i = 1; i < name.length; i++) {
-        let letter = name[i];
-        let isUpperCase = letter == letter.toUpperCase();
-        if (isUpperCase) {
-            result += ' ' + letter.toLowerCase();
-        } else {
-            result += letter;
-        }
-    }
-
-    return result;
-}
