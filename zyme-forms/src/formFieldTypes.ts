@@ -76,6 +76,7 @@ interface FormFieldBuilder<T> {
         options?: FieldOptions<T[TKey]>
     ): FormFieldWrapper<FormField<T[TKey]>>;
 
+    /** Maps all form model properties into fields. */
     allFieldsBasic(): FormFieldMap<T>;
 }
 

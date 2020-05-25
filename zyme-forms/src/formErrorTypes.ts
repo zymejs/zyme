@@ -1,4 +1,6 @@
-export class ValidationError extends Error {
+import { LogicError } from 'zyme';
+
+export class ValidationError extends LogicError {
     constructor(public readonly errors: FormError[]) {
         super('Validation error occured');
     }

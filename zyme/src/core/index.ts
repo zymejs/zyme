@@ -5,5 +5,6 @@ export * from './reexports';
 export * from './service';
 export * from './mixin';
 export * from './useAsync';
+export * from './LogicError';
 export * from './CancelError';
 export * from './component';
