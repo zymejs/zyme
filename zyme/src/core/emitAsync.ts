@@ -5,7 +5,7 @@ type EmitAsyncCallback = (event: string, arg?: any) => Promise<void>;
 export function useEmitAsync(): EmitAsyncCallback {
     const vm = requireCurrentInstance();
 
-    return (event, arg) => {
+    return async (event, arg) => {
         const listeners = vm.$listeners && vm.$listeners[event];
 
         // no listeners available
@@ -13,11 +13,7 @@ export function useEmitAsync(): EmitAsyncCallback {
             return Promise.resolve();
         }
 
-        if (Array.isArray(listeners)) {
-            // there are many listeners for this event
-            return Promise.all(listeners.map(s => s(arg))) as Promise<any>;
-        } else {
-            return Promise.resolve(listeners(arg)) as Promise<void>;
-        }
+        const promises = Array.isArray(listeners) ? listeners.map(s => s(arg)) : [listeners(arg)];
+        await Promise.all(promises.filter(p => p instanceof Promise));
     };
 }
