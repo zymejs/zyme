@@ -83,6 +83,10 @@ export interface WizardOptions {
      * True by default.
      */
     useHistory?: boolean;
+    /**
+     * Should wizard auto scroll to previous position on going back?
+     */
+    useScroll?: boolean;
 }
 
 export class Wizard {
@@ -90,7 +94,7 @@ export class Wizard {
 
     private readonly virtualHistory: FunctionResult<typeof useVirtualHistory> | null;
 
-    constructor(options: WizardOptions) {
+    constructor(private readonly options: WizardOptions) {
         if (options.useHistory !== false) {
             this.virtualHistory = useVirtualHistory();
         } else {
@@ -173,9 +177,11 @@ export class Wizard {
             this.virtualHistory?.popState(popped.historyToken);
         }
 
-        setTimeout(() => {
-            window.scrollTo(popped.scrollX, popped.scrollY);
-        });
+        if (this.options.useScroll !== false) {
+            setTimeout(() => {
+                window.scrollTo(popped.scrollX, popped.scrollY);
+            });
+        }
 
         return true;
     }
