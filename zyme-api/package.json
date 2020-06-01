@@ -1,8 +1,7 @@
 {
-    "private": true,
     "name": "zyme-api",
     "description": "",
-    "license": "ISC",
+    "license": "MIT",
     "author": "",
     "version": "1.0.0",
     "main": "./src/index.ts",

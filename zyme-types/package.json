@@ -1,9 +1,9 @@
 {
-    "private": true,
     "name": "@types/zyme",
+    "license": "MIT",
     "version": "1.0.0",
     "main": "",
-    "types": "index",
+    "types": "index.d.ts",
     "dependencies": {
         "vue": "~2.6.10"
     }
