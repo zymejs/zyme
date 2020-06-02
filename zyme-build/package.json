@@ -15,7 +15,7 @@
         "zyme-patterns": "~1.0.0"
     },
     "devDependencies": {
-        "@types/lodash": "~4.14.152",
+        "@types/lodash": "~4.14.154",
         "tslint": "~6.1.2",
         "typescript": "~3.9.3",
         "typescript-formatter": "~7.2.2"
