@@ -18,6 +18,11 @@ export function emitAsync(vm: Vue, event: string, arg?: any): Promise<void> {
         // there are many listeners for this event
         return Promise.all(listeners.map((s) => s(arg))) as Promise<any>;
     } else {
-        return Promise.resolve(listeners(arg)) as Promise<void>;
+        const promise = listeners(arg);
+        if (promise instanceof Promise) {
+            return promise;
+        }
+
+        return Promise.resolve();
     }
 }
