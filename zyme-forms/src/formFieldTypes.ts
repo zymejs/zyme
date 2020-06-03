@@ -19,7 +19,7 @@ export interface FieldOptions<TValue> {
     /**
      * You can validate input on change and return some other value.
      */
-    validate?(value: TValue): TValue | undefined;
+    validate?(value: TValue): TValue | undefined | void;
 }
 
 export class FormField<T> {
@@ -91,7 +91,7 @@ function createFieldBuilder<T>(field: FormField<T>): FormFieldBuilder<T> {
     return {
         fieldBasic: (key, options) => createFieldBasic(field, key, options),
         fieldSingleSelect: (key, options) => createFieldSingleSelect(field, key, options),
-        allFieldsBasic: () => createAllFields(field)
+        allFieldsBasic: () => createAllFields(field),
     };
 }
 
@@ -128,12 +128,12 @@ function createFieldSingleSelect<T, TKey extends keyof T, TItem>(
     prepareField(parent, field, key, options);
 
     const itemsRef = toRef(options.items);
-    const itemValue = options.itemValue ?? (t => (t as unknown) as T[TKey]);
+    const itemValue = options.itemValue ?? ((t) => (t as unknown) as T[TKey]);
 
     const items = computed(() => itemsRef.value ?? []);
 
     const selectedItem = computed(() => {
-        return itemsRef.value?.find(i => itemValue(i) === field.value) ?? null;
+        return itemsRef.value?.find((i) => itemValue(i) === field.value) ?? null;
     });
 
     field.items = unref(items);
@@ -157,7 +157,7 @@ function createFieldSingleSelect<T, TKey extends keyof T, TItem>(
             }
         });
 
-        watch(selectedItemWithFallback, item => {
+        watch(selectedItemWithFallback, (item) => {
             const selected = selectedItem.value;
             if (!selected && item) {
                 // select the first item
@@ -188,7 +188,7 @@ function prepareField<T, TKey extends keyof T, TValue extends T[TKey]>(
         get: valueOverride
             ? () => valueOverride((parent.value as T)[keyRef.value] as TValue)
             : () => (parent.value as T)[keyRef.value] as TValue,
-        set: update
+        set: update,
     });
 
     const errors = computed(() => getErrorsForModel(parent.value as any, keyRef.value));
@@ -208,7 +208,7 @@ function prepareField<T, TKey extends keyof T, TValue extends T[TKey]>(
         // this trick will cause anything that is used in handler to be observed
         const validated = computed(() => validate(value.value));
 
-        watch(validated, v => {
+        watch(validated, (v) => {
             if (recursiveCheck) {
                 // if was already changed by validation
                 recursiveCheck = false;
