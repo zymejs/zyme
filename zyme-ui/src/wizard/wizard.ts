@@ -87,6 +87,11 @@ export interface WizardOptions {
      * Should wizard auto scroll to previous position on going back?
      */
     useScroll?: boolean;
+
+    /**
+     * Default behavior for every step to determine, if you can go back.
+     */
+    canGoBack?: () => boolean;
 }
 
 export class Wizard {
@@ -121,19 +126,12 @@ export class Wizard {
     private setStep<T>(index: number, options: WizardStepOptions<T>) {
         index = Math.max(index, 0);
 
-        const history = writable(this.history);
-        const canGoBack = index > 0 && options.canGoBack !== false;
-
         let historyToken: symbol | undefined;
 
         // There's no need to initiate virtual history on first state.
         if (index > 0) {
             historyToken = this.virtualHistory?.pushState(() => {
-                if (options.canGoBack === false) {
-                    this.preventGoBackCallback();
-                } else {
-                    this.backCore(false);
-                }
+                this.backCore(false);
             });
         }
 
@@ -142,16 +140,29 @@ export class Wizard {
         const top = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
         const props = (options as WizardStepOptionsWithProps<T>).props;
 
-        const step: WizardStepWrapper<T> = {
+        const canGoBackInit = index > 0 && options.canGoBack !== false;
+        const canGoBack = computed(() => {
+            if (!canGoBackInit) {
+                return false;
+            }
+
+            if (this.options.canGoBack && !this.options.canGoBack()) {
+                return false;
+            }
+
+            return true;
+        });
+
+        const step = reactive({
             view: unwrapComponentDefinition(options.view),
-            canGoBack: canGoBack,
+            canGoBack: unref(canGoBack),
             step: null,
             artifacts: options.artifacts ?? [],
             historyToken: historyToken ?? null,
             scrollX: left,
             scrollY: top,
-            props: props ? reactive(props) : null,
-        };
+            props: props ?? null,
+        }) as WizardStepWrapper<T>;
 
         set(this.history, index, step);
     }
@@ -165,7 +176,12 @@ export class Wizard {
         const canGoBack = this.currentStep?.canGoBack;
 
         if (!canGoBack) {
-            throw new Error('Cant go back from current step');
+            if (popHistory) {
+                throw new Error('Cant go back from current step');
+            } else {
+                this.preventGoBackCallback();
+                return false;
+            }
         }
 
         const popped = history.pop();
