@@ -1,4 +1,4 @@
-import { onMounted, requireCurrentInstance } from 'zyme';
+import { requireCurrentInstance } from 'zyme';
 
 export function useScrollToElement() {
     const vm = requireCurrentInstance();
