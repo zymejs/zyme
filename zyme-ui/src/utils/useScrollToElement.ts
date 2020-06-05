@@ -1,12 +1,12 @@
 import { onMounted, requireCurrentInstance } from 'zyme';
 
-export function useScrollToElement(opts: ScrollIntoViewOptions) {
+export function useScrollToElement() {
     const vm = requireCurrentInstance();
 
-    onMounted(() => {
+    return function (opts: ScrollIntoViewOptions) {
         const el = vm.$el;
         if (el) {
             el.scrollIntoView(opts);
         }
-    });
+    };
 }
