@@ -5,6 +5,6 @@
     "main": "",
     "types": "index.d.ts",
     "dependencies": {
-        "vue": "~2.6.10"
+        "vue": "2.6.11"
     }
 }

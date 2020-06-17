@@ -5,9 +5,9 @@
     "main": "",
     "types": "index",
     "dependencies": {
-        "@types/zyme": "~1.0.0",
-        "vue": "~2.6.10",
-        "zyme": "~1.0.0"
+        "@types/zyme": "1.0.0",
+        "vue": "2.6.11",
+        "zyme": "1.0.0"
     },
     "include": [
         "./**/*.ts"
