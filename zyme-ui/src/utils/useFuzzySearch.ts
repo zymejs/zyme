@@ -33,13 +33,11 @@ export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
     watch(options.items, (i) => {
         items = i;
         dirty = true;
-        console.log('items changed', { search, result: result.value });
         runSearch();
     });
 
     watch(options.search, (s) => {
         search = s;
-        console.log('term changed', { search, result: result.value });
         runSearch();
     });
 
@@ -60,6 +58,7 @@ export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
                 // take the keys as provided, or search by all keys
                 keys: (options.keys ?? []) as string[],
                 threshold: options.threshold ?? 0.4,
+                ignoreLocation: true,
             });
 
             dirty = false;
@@ -68,8 +67,8 @@ export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
             dirty = false;
         }
 
-        const results = fuse.search(search).map((x) => x.item) as T[];
-        setResults(results);
+        const results = fuse.search(search);
+        setResults(results.map((x) => x.item) as T[]);
     }
 
     function setResults(results: readonly T[]) {
