@@ -14,7 +14,7 @@
         "zyme-forms": "1.0.0"
     },
     "devDependencies": {
-        "@types/lodash": "4.14.155",
+        "@types/lodash": "4.14.157",
         "@types/zyme": "1.0.0",
         "tslint": "6.1.2",
         "typescript": "3.9.5",

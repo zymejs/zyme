@@ -9,10 +9,10 @@
         "axios": "0.19.2",
         "lodash": "4.17.15",
         "vue": "2.6.11",
-        "vue-router": "3.3.2"
+        "vue-router": "3.3.4"
     },
     "devDependencies": {
-        "@types/lodash": "4.14.155",
+        "@types/lodash": "4.14.157",
         "@types/zyme": "1.0.0",
         "tslint": "6.1.2",
         "typescript": "3.9.5",
