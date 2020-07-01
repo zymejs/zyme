@@ -265,7 +265,7 @@ export function useWizardStepAsync<T>(factory: WizardStateFactoryAsync<T>): Wiza
     }
 
     if (!current.step) {
-        const stateRef = ref<T>(null);
+        const stateRef : Ref<T | null> = ref(null);
         const statePromise = createState(wizard, factory) as Promise<T>;
         const stateReady = computed(() => stateRef.value != null);
 

@@ -16,10 +16,10 @@ export function injectService<T>(service: Constructor<T>, opts?: { optional: boo
     return instance;
 }
 
-export function provideService<T>(service: Constructor<T, []>): T;
-export function provideService<T>(service: T): T;
-export function provideService<T, Opts>(service: Constructor<T, [Opts]>, options: Opts): T;
-export function provideService<T, Opts>(service: Constructor<T, [Opts]> | T, options?: Opts): T {
+export function provideService<T extends object>(service: Constructor<T, []>): T;
+export function provideService<T extends object>(service: T): T;
+export function provideService<T extends object, Opts>(service: Constructor<T, [Opts]>, options: Opts): T;
+export function provideService<T extends object, Opts>(service: Constructor<T, [Opts]> | T, options?: Opts): T {
     let instance: T;
     let symbol: symbol;
 

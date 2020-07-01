@@ -1,4 +1,4 @@
-import { inject as injectImport, toRefs as toRefsImport } from '@vue/composition-api';
+import { inject as injectImport } from '@vue/composition-api';
 import { computed, getCurrentInstance, isRef, Ref } from '@vue/composition-api';
 
 export function unref<T>(ref: Ref<T>) {
@@ -37,14 +37,6 @@ export function inject<T>(key: symbol | string, defaultValue?: T) {
     }
 
     return value;
-}
-
-export type Refs<Data> = {
-    [K in keyof Data]: Data[K] extends Ref<infer V> ? Ref<V> : Ref<Data[K]>;
-};
-
-export function toRefs<T extends {}>(obj: T): Refs<T> {
-    return toRefsImport(obj);
 }
 
 export function assert<T>(value: T | undefined | null): Exclude<T, undefined | null> {

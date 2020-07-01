@@ -16,7 +16,7 @@ const fuseImport = () => import('fuse.js').then((f) => f.default);
 type Fuse = InstanceOf<AsyncFunctionResult<typeof fuseImport>>;
 
 export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
-    const result = ref<readonly T[]>([]);
+    const result : Ref<readonly T[]> = ref([]);
 
     let items = isRef(options.items) ? options.items.value : options.items();
     let search = isRef(options.search) ? options.search.value : options.search();

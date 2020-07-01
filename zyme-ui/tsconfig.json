@@ -1,8 +1,16 @@
 {
-    "extends": "../tsconfig.json",
+    "compileOnSave": false,
     "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
         "lib": ["esnext", "dom"],
-        "baseUrl": "."
-    },
-    "include": ["./**/*.ts"]
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "importHelpers": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowSyntheticDefaultImports": true,
+        "declaration": false
+    }
 }
