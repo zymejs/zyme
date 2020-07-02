@@ -1,19 +1,28 @@
 import { requireCurrentInstance } from './helpers';
 
-type EmitAsyncCallback = (event: string, arg?: any) => Promise<void>;
-
-export function useEmitAsync(): EmitAsyncCallback {
+export function useEmitAsync() {
     const vm = requireCurrentInstance();
 
-    return async (event, arg) => {
-        const listeners = vm.$listeners && vm.$listeners[event];
+    return (event: string, arg?: any) => emitAsync(vm, event, arg);
+}
 
-        // no listeners available
-        if (!listeners) {
-            return Promise.resolve();
+export function emitAsync(vm: Vue, event: string, arg?: any): Promise<void> {
+    const listeners = vm.$listeners && vm.$listeners[event];
+
+    // no listeners available
+    if (!listeners) {
+        return Promise.resolve();
+    }
+
+    if (Array.isArray(listeners)) {
+        // there are many listeners for this event
+        return Promise.all(listeners.map((s) => s(arg))) as Promise<any>;
+    } else {
+        const promise = listeners(arg);
+        if (promise instanceof Promise) {
+            return promise;
         }
 
-        const promises = Array.isArray(listeners) ? listeners.map(s => s(arg)) : [listeners(arg)];
-        await Promise.all(promises.filter(p => p instanceof Promise));
-    };
+        return Promise.resolve();
+    }
 }

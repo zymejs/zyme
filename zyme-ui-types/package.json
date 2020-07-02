@@ -1,13 +1,17 @@
 {
-    "private": true,
     "name": "@types/zyme-ui",
     "version": "1.0.0",
+    "license": "MIT",
     "main": "",
     "types": "index",
     "dependencies": {
-        "@types/zyme": "~1.0.0",
-        "vue": "~2.6.10",
-        "zyme": "~1.0.0"
+        "@types/zyme": "1.0.0",
+        "vue": "2.6.11",
+        "zyme": "1.0.0"
+    },
+    "devDependencies": {
+        "prettier": "^2.0.5",
+        "tslint": "^6.1.2"
     },
     "include": [
         "./**/*.ts"

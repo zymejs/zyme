@@ -1,5 +1,5 @@
 import { reactive, SetupContext } from '@vue/composition-api';
-import { UnwrapRef } from '@vue/composition-api/dist/reactivity';
+import { UnwrapRef } from '@vue/composition-api';
 import isFunction from 'lodash/isFunction';
 
 import { PropTypes } from './reexports';
@@ -23,7 +23,7 @@ export function mixin<TProps extends {}, TResult extends {}, TParam = void>(
         props: wrapProps(opts.props),
         setup(props, ctx) {
             return reactive(opts.setup(props, ctx));
-        }
+        },
     };
 }
 

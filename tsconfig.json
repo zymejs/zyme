@@ -6,6 +6,7 @@
         "lib": ["esnext", "dom"],
         "moduleResolution": "node",
         "experimentalDecorators": true,
+        "esModuleInterop": true,
         "importHelpers": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,

@@ -1,4 +1,4 @@
-import { getCurrentInstance, Ref } from '@vue/composition-api';
+import { getCurrentInstance, Ref, set } from '@vue/composition-api';
 import { ComponentOptions } from 'vue';
 import {
     assert,
@@ -8,11 +8,9 @@ import {
     reactive,
     ref,
     unref,
-    writable,
     unwrapComponentDefinition,
-    ComponentDefinitionInput,
+    writable,
     ComponentDefinition,
-    PropTypes
 } from 'zyme';
 import { Prototype, Typed } from 'zyme-patterns';
 
@@ -22,6 +20,7 @@ export interface WizardStep<T = unknown> {
     /** Reactive state of the step */
     readonly state: T;
     next<TNext>(options: WizardStepOptions<TNext>): void;
+    replace<TNext>(options: WizardStepOptions<TNext>): void;
     back(): void;
 }
 
@@ -84,6 +83,15 @@ export interface WizardOptions {
      * True by default.
      */
     useHistory?: boolean;
+    /**
+     * Should wizard auto scroll to previous position on going back?
+     */
+    useScroll?: boolean;
+
+    /**
+     * Default behavior for every step to determine, if you can go back.
+     */
+    canGoBack?: () => boolean;
 }
 
 export class Wizard {
@@ -91,7 +99,7 @@ export class Wizard {
 
     private readonly virtualHistory: FunctionResult<typeof useVirtualHistory> | null;
 
-    constructor(options: WizardOptions) {
+    constructor(private readonly options: WizardOptions) {
         if (options.useHistory !== false) {
             this.virtualHistory = useVirtualHistory();
         } else {
@@ -108,19 +116,22 @@ export class Wizard {
     }
 
     public next<T>(options: WizardStepOptions<T>): void {
-        const history = writable(this.history);
-        const canGoBack = history.length > 0 && options.canGoBack !== false;
+        this.setStep(this.history.length, options);
+    }
+
+    public replace<T>(options: WizardStepOptions<T>): void {
+        this.setStep(this.history.length - 1, options);
+    }
+
+    private setStep<T>(index: number, options: WizardStepOptions<T>) {
+        index = Math.max(index, 0);
 
         let historyToken: symbol | undefined;
 
         // There's no need to initiate virtual history on first state.
-        if (history.length > 0) {
+        if (index > 0) {
             historyToken = this.virtualHistory?.pushState(() => {
-                if (options.canGoBack === false) {
-                    this.preventGoBackCallback();
-                } else {
-                    this.backCore(false);
-                }
+                this.backCore(false);
             });
         }
 
@@ -129,16 +140,31 @@ export class Wizard {
         const top = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
         const props = (options as WizardStepOptionsWithProps<T>).props;
 
-        history.push({
+        const canGoBackInit = index > 0 && options.canGoBack !== false;
+        const canGoBack = computed(() => {
+            if (!canGoBackInit) {
+                return false;
+            }
+
+            if (this.options.canGoBack && !this.options.canGoBack()) {
+                return false;
+            }
+
+            return true;
+        });
+
+        const step = reactive({
             view: unwrapComponentDefinition(options.view),
-            canGoBack: canGoBack,
+            canGoBack: unref(canGoBack),
             step: null,
             artifacts: options.artifacts ?? [],
             historyToken: historyToken ?? null,
             scrollX: left,
             scrollY: top,
-            props: props ? reactive(props) : null
-        });
+            props: props ?? null,
+        }) as WizardStepWrapper<T>;
+
+        set(this.history, index, step);
     }
 
     public back(): boolean {
@@ -150,7 +176,12 @@ export class Wizard {
         const canGoBack = this.currentStep?.canGoBack;
 
         if (!canGoBack) {
-            throw new Error('Cant go back from current step');
+            if (popHistory) {
+                throw new Error('Cant go back from current step');
+            } else {
+                this.preventGoBackCallback();
+                return false;
+            }
         }
 
         const popped = history.pop();
@@ -162,9 +193,11 @@ export class Wizard {
             this.virtualHistory?.popState(popped.historyToken);
         }
 
-        setTimeout(() => {
-            window.scrollTo(popped.scrollX, popped.scrollY);
-        });
+        if (this.options.useScroll !== false) {
+            setTimeout(() => {
+                window.scrollTo(popped.scrollX, popped.scrollY);
+            });
+        }
 
         return true;
     }
@@ -215,7 +248,8 @@ export function useWizardStep<T>(factory: WizardStateFactorySync<T>): WizardStep
         current.step = reactive<WizardStep<T>>({
             state: createState(wizard, factory) as T,
             next: wizard.next.bind(wizard),
-            back: wizard.back.bind(wizard)
+            replace: wizard.replace.bind(wizard),
+            back: wizard.back.bind(wizard),
         });
     }
 
@@ -231,18 +265,19 @@ export function useWizardStepAsync<T>(factory: WizardStateFactoryAsync<T>): Wiza
     }
 
     if (!current.step) {
-        const stateRef = ref<T>(null);
+        const stateRef : Ref<T | null> = ref(null);
         const statePromise = createState(wizard, factory) as Promise<T>;
         const stateReady = computed(() => stateRef.value != null);
 
-        statePromise.then(s => (stateRef.value = s));
+        statePromise.then((s) => (stateRef.value = s));
 
         current.step = reactive<WizardStepAsync<T>>({
             state: unref(stateRef),
             promise: statePromise,
             ready: unref(stateReady),
             next: wizard.next.bind(wizard),
-            back: wizard.back.bind(wizard)
+            replace: wizard.replace.bind(wizard),
+            back: wizard.back.bind(wizard),
         });
     }
 
@@ -253,8 +288,8 @@ function createState<T>(wizard: Wizard, stateFactory: WizardStateFactory<T>) {
     const duringInit = true;
 
     const ctx: WizardStepContext = {
-        getArtifact: proto => getArtifact(wizard, proto),
-        requireArtifact: proto => requireArtifact(wizard, proto, duringInit)
+        getArtifact: (proto) => getArtifact(wizard, proto),
+        requireArtifact: (proto) => requireArtifact(wizard, proto, duringInit),
     };
 
     return stateFactory(ctx);

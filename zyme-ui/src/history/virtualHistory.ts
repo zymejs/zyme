@@ -23,14 +23,14 @@ export function useVirtualHistory() {
 
     return {
         pushState,
-        popState
+        popState,
     };
 }
 
 function pushState(onBack: () => void): symbol {
     const entry: VirtualHistoryEntry = {
         callback: onBack,
-        symbol: Symbol()
+        symbol: Symbol(),
     };
 
     backstack.push(entry);
@@ -71,7 +71,11 @@ function handlePopState(event: PopStateEvent) {
             entry.callback();
         }
 
-        setupVirtualState();
+        if (backstack.length) {
+            setupVirtualState();
+        } else {
+            history.back();
+        }
     } else {
         // if we went back or forth into the virtual state
         // it means, that user was into some other browser history state before
@@ -106,22 +110,23 @@ function setupVirtualState() {
     // 1. State, entrance on which causes history back
     // 2. Current state
 
-    const initialState: VirtualHistoryState = {
-        marker: 'PG:VirtualHistoryMarker',
-        backstackUid: backstackUid,
-        initial: true
-    };
+    // Setting state `1`.
+    const current = history.state;
+    if (!isVirtualState(current) || !current.initial) {
+        const initialState: VirtualHistoryState = {
+            marker: 'PG:VirtualHistoryMarker',
+            backstackUid: backstackUid,
+            initial: true,
+        };
+        window.history.pushState(initialState, document.title, null);
+    }
 
+    // State that allows us to handle history back.
     const virtualState: VirtualHistoryState = {
         marker: 'PG:VirtualHistoryMarker',
         backstackUid: backstackUid,
-        initial: false
+        initial: false,
     };
-
-    // Setting state `1`.
-    window.history.replaceState(initialState, document.title, null);
-
-    // State that allows us to handle history back.
     window.history.pushState(virtualState, document.title, null);
 }
 

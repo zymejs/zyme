@@ -6,5 +6,7 @@ export * from './modals';
 export * from './history';
 export * from './wizard';
 export * from './utils';
+export * from './components';
+export * from './directives';
 
-export { scrollTo } from './methods/ScrollTo';
+export * from './methods/ScrollTo';
