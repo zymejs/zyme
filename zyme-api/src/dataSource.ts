@@ -44,7 +44,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
     let pendingCancel: CancelTokenSource | undefined;
     let pendingPromise: Promise<TResult> | undefined;
 
-    const dataRef = isRef(opts.data) ? opts.data : ref<TResult>(null);
+    const dataRef = isRef(opts.data) ? opts.data : ref<TResult | null>(null);
     const dataCallback = isRef(opts.data) ? null : opts.data;
     const requestRef = isRef(opts.request) ? opts.request : computed(opts.request);
 

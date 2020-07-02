@@ -23,5 +23,5 @@ export function toRef<T>(param: RefParam<T> | T): Readonly<Ref<T>> {
         return computed(param);
     }
 
-    return ref(param);
+    return ref(param) as Readonly<Ref<T>>;
 }

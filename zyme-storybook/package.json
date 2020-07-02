@@ -8,12 +8,12 @@
     "main": "./preset.js",
     "scripts": {},
     "dependencies": {
-        "@storybook/addons": "~6.0.0-beta.12",
-        "@storybook/api": "~6.0.0-beta.12",
-        "@storybook/components": "~6.0.0-beta.12",
-        "@storybook/vue": "~6.0.0-beta.12",
-        "js-yaml": "^3.14.0",
-        "react": "^16.13.1",
+        "@storybook/addons": "~6.0.0-beta.39",
+        "@storybook/api": "~6.0.0-beta.39",
+        "@storybook/components": "~6.0.0-beta.39",
+        "@storybook/vue": "~6.0.0-beta.39",
+        "js-yaml": "~3.14.0",
+        "react": "~16.13.1",
         "vue": "~2.6.10",
         "zyme": "~1.0.0"
     }

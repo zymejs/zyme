@@ -14,20 +14,20 @@ class ApiClient {
         return callEndpoint({
             endpoint,
             request: request as T,
-            interceptor: this.interceptor
+            interceptor: this.interceptor,
         });
     }
 
     load<TResult>(endpoint: ApiEndpoint<void, TResult>): Ref<TResult | null>;
     load<T, TResult>(endpoint: ApiEndpoint<T, TResult>, request: T): Ref<TResult | null>;
     load<T, TResult>(endpoint: ApiEndpoint<T, TResult>, request?: T): Ref<TResult | null> {
-        const result = ref<TResult>(null);
+        const result: Ref<TResult | null> = ref(null);
 
         callEndpoint({
             endpoint,
             request: request as T,
-            interceptor: this.interceptor
-        }).then(r => {
+            interceptor: this.interceptor,
+        }).then((r) => {
             result.value = r;
         });
 
