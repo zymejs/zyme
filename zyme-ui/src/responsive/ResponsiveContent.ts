@@ -1,12 +1,16 @@
-import { CreateElement, FunctionalComponentOptions, RenderContext } from 'vue';
+import { FunctionalComponentOptions } from 'vue';
 
 import { breakpoints, Breakpoint } from './breakpoints';
 import { useWindowSize } from './useWindowSize';
 
-export const ResponsiveContent: FunctionalComponentOptions<void, void> = {
+interface ResponsiveContentProps {
+    breakpoint: Breakpoint;
+}
+
+export const ResponsiveContent: FunctionalComponentOptions<ResponsiveContentProps> = {
     functional: true,
     name: 'Responsive',
-    render(h: CreateElement, context: RenderContext<any>) {
+    render(h, context) {
         const width = useWindowSize().width;
 
         let currentSlotName: string | undefined;
@@ -16,7 +20,7 @@ export const ResponsiveContent: FunctionalComponentOptions<void, void> = {
 
         let defaultBreakpoint = 1;
         if (context.props.breakpoint) {
-            const breakpoint = context.props.breakpoint as Breakpoint;
+            const breakpoint = context.props.breakpoint;
             defaultBreakpoint = breakpoints[breakpoint];
         }
 
@@ -34,5 +38,5 @@ export const ResponsiveContent: FunctionalComponentOptions<void, void> = {
         }
 
         return currentSlotName && slots[currentSlotName];
-    }
+    },
 };

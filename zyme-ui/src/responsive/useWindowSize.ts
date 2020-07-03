@@ -1,4 +1,4 @@
-import { reactive, ref } from '@vue/composition-api';
+import Vue from 'vue';
 
 interface WindowSize {
     width: number;
@@ -9,9 +9,9 @@ let windowSize: WindowSize;
 
 export function useWindowSize() {
     if (!windowSize) {
-        windowSize = reactive({
+        windowSize = Vue.observable({
             width: 0,
-            height: 0
+            height: 0,
         });
 
         window.addEventListener('resize', resize, { passive: true });
