@@ -14,8 +14,11 @@ export function useWindowSize() {
             height: 0,
         });
 
-        window.addEventListener('resize', resize, { passive: true });
-        resize();
+        // detect SSR context
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', resize, { passive: true });
+            resize();
+        }
     }
 
     return windowSize as Readonly<WindowSize>;
