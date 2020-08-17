@@ -9,21 +9,7 @@ interface ImmutableArrayLike<T> {
     readonly [n: number]: Immutable<T>;
 }
 
-type ImmutableArrayExcludedMethods =
-    | number
-    | 'push'
-    | 'pop'
-    | 'shift'
-    | 'unshift'
-    | 'splice'
-    | 'sort'
-    | 'reverse'
-    | 'fill';
-type ImmutableArrayNotExcludedMethods<T> = Exclude<keyof T[], ImmutableArrayExcludedMethods>;
-
-type ImmutableArray<T> = ImmutableArrayLike<T> &
-    Pick<T[], ImmutableArrayNotExcludedMethods<T>> &
-    Iterable<T>;
+type ImmutableArray<T> = readonly Immutable<T>[];
 
 declare global {
     type Immutable<T> = T extends string
