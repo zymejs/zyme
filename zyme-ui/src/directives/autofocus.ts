@@ -11,7 +11,10 @@ export const autofocus: DirectiveOptions = {
 
         // don't make autofocus on mobile,
         // because it's not convenient to cover half of the screen with keyboard
-        if (binding.modifiers.mobile || window.innerWidth >= breakpoints.sm) {
+        if (
+            binding.modifiers.mobile ||
+            (typeof window !== 'undefined' && window.innerWidth >= breakpoints.sm)
+        ) {
             el.focus();
         }
     },
