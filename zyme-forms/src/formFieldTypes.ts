@@ -1,10 +1,8 @@
-import { computed, reactive, set, watch, Ref } from '@vue/composition-api';
-import { unref, writable } from 'zyme';
+import { computed, reactive, set, watch } from '@vue/composition-api';
+import { toRef, unref, writable, RefParam } from 'zyme';
 
 import { getErrorsForModel } from './formErrorHelpers';
-import { toRef } from './formFieldCore';
 
-export type RefParam<T> = Readonly<Ref<T>> | ((this: void) => T);
 export type FormModelBase = object | any[];
 
 export interface FieldOptions<TValue> {
