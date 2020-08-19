@@ -1,10 +1,10 @@
 import { FunctionalComponentOptions } from 'vue';
 
-import { breakpoints, Breakpoint } from './breakpoints';
+import { breakpoints } from '../breakpoints';
 import { useWindowSize } from './useWindowSize';
 
 interface ResponsiveContentProps {
-    breakpoint: Breakpoint;
+    breakpoint: string | number;
 }
 
 export const ResponsiveContent: FunctionalComponentOptions<ResponsiveContentProps> = {
@@ -21,11 +21,16 @@ export const ResponsiveContent: FunctionalComponentOptions<ResponsiveContentProp
         let defaultBreakpoint = 1;
         if (context.props.breakpoint) {
             const breakpoint = context.props.breakpoint;
-            defaultBreakpoint = breakpoints[breakpoint];
+
+            if(typeof breakpoint === 'number') {
+                defaultBreakpoint = breakpoint;
+            } else {
+                defaultBreakpoint =  breakpoints[breakpoint] ?? 1;
+            }
         }
 
         for (const slot of Object.keys(slots)) {
-            let breakpoint: number = breakpoints[slot as Breakpoint];
+            let breakpoint: number = breakpoints[slot];
 
             if (slot === 'default') {
                 breakpoint = defaultBreakpoint;

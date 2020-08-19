@@ -1,6 +1,6 @@
 import { DirectiveOptions } from 'vue';
 
-import { breakpoints } from '../responsive';
+import { breakpoints } from '../breakpoints';
 
 export const autofocus: DirectiveOptions = {
     inserted(el, binding) {
@@ -13,7 +13,7 @@ export const autofocus: DirectiveOptions = {
         // because it's not convenient to cover half of the screen with keyboard
         if (
             binding.modifiers.mobile ||
-            (typeof window !== 'undefined' && window.innerWidth >= breakpoints.sm)
+            (typeof window !== 'undefined' && window.innerWidth >= (breakpoints.sm ?? 576))
         ) {
             el.focus();
         }

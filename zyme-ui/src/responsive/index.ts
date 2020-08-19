@@ -6,4 +6,3 @@ export * from './onElementScroll';
 export * from './onWindowScroll';
 export * from './onElementResize';
 export * from './useBreakpoint';
-export * from './breakpoints';
