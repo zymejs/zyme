@@ -1,7 +1,8 @@
-import { computed, getCurrentInstance } from '@vue/composition-api';
+import { computed } from '@vue/composition-api';
+import { requireCurrentInstance } from '../core';
 
 export function useRoute() {
-    const instance = getCurrentInstance();
+    const instance = requireCurrentInstance();
 
-    return computed(() => instance?.$route);
+    return computed(() => instance.$route);
 }
