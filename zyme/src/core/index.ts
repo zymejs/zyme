@@ -7,3 +7,4 @@ export * from './mixin';
 export * from './useAsync';
 export * from './CancelError';
 export * from './component';
+export * from './hooks';

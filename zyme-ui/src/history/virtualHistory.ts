@@ -14,6 +14,7 @@ interface VirtualHistoryState {
 const backstack: VirtualHistoryEntry[] = [];
 let backstackUid: string | undefined;
 let initialized = false;
+let pending: Promise<void> | undefined;
 
 export function useVirtualHistory() {
     if (!initialized) {
@@ -39,11 +40,18 @@ function pushState(onBack: () => void): symbol {
     return entry.symbol;
 }
 
-function popState(state: symbol) {
-    if (isCurrentVirtualState()) {
+async function popState(symbol: symbol) {
+    let state = history.state;
+    console.warn(state);
+
+    if (!isVirtualState(state) || state.backstackUid !== backstackUid) {
+        return;
+    }
+
+    if (!state.initial) {
         let entry = backstack.pop();
         while (entry) {
-            if (entry.symbol === state) {
+            if (entry.symbol === symbol) {
                 break;
             }
 
@@ -51,9 +59,11 @@ function popState(state: symbol) {
         }
 
         if (backstack.length === 0) {
-            window.history.back();
+            await historyBack();
         }
     }
+
+    await pending;
 }
 
 function handlePopState(event: PopStateEvent) {
@@ -74,7 +84,7 @@ function handlePopState(event: PopStateEvent) {
         if (backstack.length) {
             setupVirtualState();
         } else {
-            history.back();
+            pending = historyBack();
         }
     } else {
         // if we went back or forth into the virtual state
@@ -83,7 +93,7 @@ function handlePopState(event: PopStateEvent) {
         // or by the router (reacting to the URL change)
         // so our virtual state will be effect
         backstack.length = 0;
-        history.back();
+        pending = historyBack();
     }
 }
 
@@ -139,4 +149,17 @@ function isVirtualState(state: typeof history.state): state is VirtualHistorySta
 function isCurrentVirtualState(): boolean {
     const state = history.state;
     return isVirtualState(state) && state.initial === false && state.backstackUid === backstackUid;
+}
+
+function historyBack() {
+    const promise = new Promise<void>((resolve) => {
+        const callback = (e: PopStateEvent) => {
+            window.removeEventListener('popstate', callback);
+            resolve();
+        };
+        window.addEventListener('popstate', callback);
+    });
+
+    history.back();
+    return promise;
 }
