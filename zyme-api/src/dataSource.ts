@@ -58,7 +58,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
         trailing: opts.debounce?.trailing ?? true,
     });
 
-    watch(requestRef, debouncedLoad, { deep: true });
+    watch(requestRef, debouncedLoad, { deep: true, immediate: true });
 
     return reactive({
         data: unref(dataRef),
