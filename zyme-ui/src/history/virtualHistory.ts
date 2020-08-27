@@ -42,7 +42,6 @@ function pushState(onBack: () => void): symbol {
 
 async function popState(symbol: symbol) {
     let state = history.state;
-    console.warn(state);
 
     if (!isVirtualState(state) || state.backstackUid !== backstackUid) {
         return;
