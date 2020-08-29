@@ -1,4 +1,4 @@
-import { getCurrentInstance, Ref, set } from '@vue/composition-api';
+import { getCurrentInstance, set, Ref } from '@vue/composition-api';
 import { ComponentOptions } from 'vue';
 import {
     assert,
@@ -265,14 +265,14 @@ export function useWizardStepAsync<T>(factory: WizardStateFactoryAsync<T>): Wiza
     }
 
     if (!current.step) {
-        const stateRef : Ref<T | null> = ref(null);
+        const stateRef = ref(null) as Ref<T | null>;
         const statePromise = createState(wizard, factory) as Promise<T>;
         const stateReady = computed(() => stateRef.value != null);
 
         statePromise.then((s) => (stateRef.value = s));
 
         current.step = reactive<WizardStepAsync<T>>({
-            state: unref(stateRef),
+            state: unref(stateRef) as T,
             promise: statePromise,
             ready: unref(stateReady),
             next: wizard.next.bind(wizard),

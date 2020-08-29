@@ -6,11 +6,11 @@
     "types": "index",
     "dependencies": {
         "@types/zyme": "1.0.0",
-        "vue": "^2.6.11",
+        "vue": "^2.6.12",
         "zyme": "1.0.0"
     },
     "devDependencies": {
-        "prettier": "^2.0.5",
+        "prettier": "^2.1.1",
         "tslint": "^6.1.3"
     },
     "include": [

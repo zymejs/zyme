@@ -6,7 +6,7 @@ type ElementParam = Element | Window | undefined | null;
 export function onElementScroll(element: RefParam<ElementParam>, callback: (event: Event) => void) {
     const elementRef = toRef(element);
 
-    watch(elementRef, (current, previous) => {
+    watch(() => elementRef.value, (current, previous) => {
         disconnect(previous);
         connect(current);
     });
