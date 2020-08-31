@@ -3,3 +3,4 @@ export * from './getScrollBarWidth';
 export * from './useScrollToElement';
 export * from './useFuzzySearch';
 export * from './useGlobalClass';
+export * from './onKeyUp';
