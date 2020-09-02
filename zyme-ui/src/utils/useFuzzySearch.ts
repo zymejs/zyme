@@ -16,7 +16,7 @@ const fuseImport = () => import('fuse.js').then((f) => f.default);
 type Fuse = InstanceOf<AsyncFunctionResult<typeof fuseImport>>;
 
 export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
-    const result : Ref<readonly T[]> = ref([]);
+    const result: Ref<readonly T[]> = ref([]);
 
     let items = isRef(options.items) ? options.items.value : options.items();
     let search = isRef(options.search) ? options.search.value : options.search();
@@ -49,21 +49,23 @@ export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
             return;
         }
 
-        if (!fuse) {
+        if (!fuse || dirty) {
             const fuseClass = await fuseImport();
+
+            let keys = options.keys as string[];
+            if (!keys) {
+                keys = Object.keys(items[0]);
+            }
 
             fuse = new fuseClass(items ?? [], {
                 shouldSort: true,
                 minMatchCharLength: 1,
                 // take the keys as provided, or search by all keys
-                keys: (options.keys ?? []) as string[],
+                keys: keys,
                 threshold: options.threshold ?? 0.4,
                 ignoreLocation: true,
             });
 
-            dirty = false;
-        } else if (dirty) {
-            fuse.setCollection(items);
             dirty = false;
         }
 
