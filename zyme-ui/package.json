@@ -8,7 +8,7 @@
     "dependencies": {
         "css-element-queries": "^1.2.3",
         "fuse.js": "^6.4.0",
-        "lodash": "^4.17.19",
+        "lodash": "^4.17.20",
         "vue": "^2.6.12",
         "zyme": "1.0.0",
         "zyme-patterns": "1.0.0"
