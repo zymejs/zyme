@@ -22,6 +22,7 @@ export interface WizardStep<T = unknown> {
     next<TNext>(options: WizardStepOptions<TNext>): void;
     replace<TNext>(options: WizardStepOptions<TNext>): void;
     back(): void;
+    backToStep(index: number): void;
 }
 
 type WizardStepViewOptions<TProps = void> = ComponentOptions<Vue, any, any, any, any, TProps>;
@@ -171,35 +172,47 @@ export class Wizard {
         return this.backCore(true);
     }
 
-    private backCore(popHistory: boolean) {
+    public backToStep(index: number): boolean {
+        return this.backCore(true, index);
+    }
+
+    private backCore(popHistory: boolean, index?: number) {
         const history = writable(this.history);
         const canGoBack = this.currentStep?.canGoBack;
 
         if (!canGoBack) {
             if (popHistory) {
-                throw new Error('Cant go back from current step');
+                throw new Error("Can't go back from current step");
             } else {
                 this.preventGoBackCallback();
                 return false;
             }
         }
 
-        const popped = history.pop();
-        if (!popped) {
-            return false;
+        if (index && (index >= history.length - 1 || index < 0)) {
+            throw new Error("Can't go back to step " + index);
         }
 
-        if (popHistory && popped.historyToken) {
-            this.virtualHistory?.popState(popped.historyToken);
-        }
+        while (true) {
+            const popped = history.pop();
+            if (!popped) {
+                return false;
+            }
 
-        if (this.options.useScroll !== false) {
-            setTimeout(() => {
-                window.scrollTo(popped.scrollX, popped.scrollY);
-            });
-        }
+            if (!index || index + 1 == history.length) {
+                if (popHistory && popped.historyToken) {
+                    this.virtualHistory?.popState(popped.historyToken);
+                }
 
-        return true;
+                if (this.options.useScroll !== false) {
+                    setTimeout(() => {
+                        window.scrollTo(popped.scrollX, popped.scrollY);
+                    });
+                }
+
+                return true;
+            }
+        }
     }
 
     public getArtifact<T extends Typed>(proto: Prototype<T>) {
@@ -250,6 +263,7 @@ export function useWizardStep<T>(factory: WizardStateFactorySync<T>): WizardStep
             next: wizard.next.bind(wizard),
             replace: wizard.replace.bind(wizard),
             back: wizard.back.bind(wizard),
+            backToStep: wizard.backToStep.bind(wizard),
         });
     }
 
@@ -265,7 +279,7 @@ export function useWizardStepAsync<T>(factory: WizardStateFactoryAsync<T>): Wiza
     }
 
     if (!current.step) {
-        const stateRef : Ref<T | null> = ref(null);
+        const stateRef: Ref<T | null> = ref(null);
         const statePromise = createState(wizard, factory) as Promise<T>;
         const stateReady = computed(() => stateRef.value != null);
 
@@ -278,6 +292,7 @@ export function useWizardStepAsync<T>(factory: WizardStateFactoryAsync<T>): Wiza
             next: wizard.next.bind(wizard),
             replace: wizard.replace.bind(wizard),
             back: wizard.back.bind(wizard),
+            backToStep: wizard.backToStep.bind(wizard),
         });
     }
 
