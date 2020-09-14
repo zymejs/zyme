@@ -199,7 +199,7 @@ export class Wizard {
                 return false;
             }
 
-            if (!index || index + 1 == history.length) {
+            if (index === undefined || index + 1 === history.length) {
                 if (popHistory && popped.historyToken) {
                     this.virtualHistory?.popState(popped.historyToken);
                 }
