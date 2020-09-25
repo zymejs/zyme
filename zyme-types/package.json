@@ -8,7 +8,7 @@
         "vue": "^2.6.12"
     },
     "devDependencies": {
-        "prettier": "^2.1.1",
+        "prettier": "^2.1.2",
         "tslint": "^6.1.3"
     }
 }
