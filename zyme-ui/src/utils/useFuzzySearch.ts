@@ -49,23 +49,21 @@ export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
             return;
         }
 
-        if (!fuse || dirty) {
+        if (!fuse) {
             const fuseClass = await fuseImport();
-
-            let keys = options.keys as string[];
-            if (!keys) {
-                keys = Object.keys(items[0]);
-            }
 
             fuse = new fuseClass(items ?? [], {
                 shouldSort: true,
                 minMatchCharLength: 1,
                 // take the keys as provided, or search by all keys
-                keys: keys,
+                keys: (options.keys ?? Object.keys(items[0])) as string[],
                 threshold: options.threshold ?? 0.4,
                 ignoreLocation: true,
             });
 
+            dirty = false;
+        } else if (dirty) {
+            fuse.setCollection(items);
             dirty = false;
         }
 
