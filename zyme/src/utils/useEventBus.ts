@@ -1,13 +1,14 @@
 import Vue from 'vue';
 import { getCurrentInstance } from '@vue/composition-api';
 
-import { onActivated, onBeforeUnmount, onDeactivated } from '../core';
+import { onActivated, onBeforeUnmount, onDeactivated, emitAsync as emitAsyncImport } from '../core';
 
-type EventCallback<T = void> = (arg: T) => void;
+type EventCallback<T = void> = (arg: T) => void | Promise<void>;
 
 const bus = new Vue();
 
 export function useEventBus() {
+    console.error(bus);
     return {
         on<T = void>(event: string, fct: EventCallback<T>) {
             on(event, fct);
@@ -18,8 +19,10 @@ export function useEventBus() {
                 onActivated(() => on(event, fct));
                 onBeforeUnmount(() => off(event, fct));
             }
+            console.warn(bus);
         },
         emit,
+        emitAsync,
     };
 }
 
@@ -37,4 +40,10 @@ function emit(event: string): void;
 function emit<T>(event: string, arg: T): void;
 function emit<T>(event: string, arg?: T): void {
     bus.$emit(event, arg);
+}
+
+function emitAsync(event: string): Promise<void>;
+function emitAsync<T>(event: string, arg: T): Promise<void>;
+function emitAsync<T>(event: string, arg?: T): Promise<void> {
+    return emitAsyncImport(bus, event, arg);
 }

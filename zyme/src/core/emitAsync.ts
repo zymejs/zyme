@@ -7,7 +7,8 @@ export function useEmitAsync() {
 }
 
 export function emitAsync(vm: Vue, event: string, arg?: any): Promise<void> {
-    const listeners = vm.$listeners && vm.$listeners[event];
+    // hack! we use internal _events prop to handle dynamic events as well
+    const listeners = (vm as any)._events?.[event] as Vue['$listeners'][''];
 
     // no listeners available
     if (!listeners) {
