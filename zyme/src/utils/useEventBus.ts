@@ -8,7 +8,6 @@ type EventCallback<T = void> = (arg: T) => void | Promise<void>;
 const bus = new Vue();
 
 export function useEventBus() {
-    console.error(bus);
     return {
         on<T = void>(event: string, fct: EventCallback<T>) {
             on(event, fct);
@@ -19,7 +18,6 @@ export function useEventBus() {
                 onActivated(() => on(event, fct));
                 onBeforeUnmount(() => off(event, fct));
             }
-            console.warn(bus);
         },
         emit,
         emitAsync,
