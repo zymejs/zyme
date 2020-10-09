@@ -20,7 +20,6 @@ export function useEventBus() {
             }
         },
         emit,
-        emitAsync,
     };
 }
 
@@ -38,10 +37,4 @@ function emit(event: string): void;
 function emit<T>(event: string, arg: T): void;
 function emit<T>(event: string, arg?: T): void {
     bus.$emit(event, arg);
-}
-
-function emitAsync(event: string): Promise<void>;
-function emitAsync<T>(event: string, arg: T): Promise<void>;
-function emitAsync<T>(event: string, arg?: T): Promise<void> {
-    return emitAsyncImport(bus, event, arg);
 }
