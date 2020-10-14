@@ -16,12 +16,16 @@ export function injectService<T>(service: Constructor<T>, opts?: { optional: boo
     return instance;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function provideService<T extends object>(service: Constructor<T, []>): T;
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function provideService<T extends object>(service: T extends Constructor ? never : T): T;
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function provideService<T extends object, Opts>(
     service: Constructor<T, [Opts]>,
     options: Opts
 ): T;
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function provideService<T extends object, Opts>(
     service: Constructor<T, [Opts]> | T,
     options?: Opts
@@ -33,12 +37,13 @@ export function provideService<T extends object, Opts>(
         instance = new service(options as Opts);
         symbol = getServiceSymbol(service);
     } else {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const constructor = Object.getPrototypeOf(service).constructor;
         instance = service;
         symbol = getServiceSymbol(constructor);
     }
 
-    instance = reactive(instance) as T;
+    instance = reactive<T>(instance) as T;
 
     provide(symbol, instance);
 

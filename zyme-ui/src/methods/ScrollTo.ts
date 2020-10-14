@@ -66,6 +66,7 @@ export function scrollTo(node: Node | Vue) {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isVue(obj: any): obj is Vue {
     return obj instanceof Vue;
 }
@@ -74,7 +75,7 @@ function getOffset(el: Element): Offset {
     const rect = el.getBoundingClientRect();
     return {
         left: rect.left + window.scrollX,
-        top: rect.top + window.scrollY
+        top: rect.top + window.scrollY,
     };
 }
 

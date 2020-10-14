@@ -1,7 +1,6 @@
-import { computed, watch, PropType } from '@vue/composition-api';
-import { injectService, prop, requireCurrentInstance } from 'zyme';
+import { computed, PropType } from '@vue/composition-api';
+import { prop, requireCurrentInstance } from 'zyme';
 
-import { FormContext } from './formContext';
 import { createFieldCore } from './formFieldCore';
 import { FormField } from './formFieldTypes';
 
@@ -15,7 +14,7 @@ export function useFormFieldProps<T>(type?: PropType<T>) {
     return {
         field: prop<FormField<T>>([Object]).optional(),
         value: prop(type).optional({ default: undefined }),
-        disabled: prop(Boolean).optional()
+        disabled: prop(Boolean).optional(),
     };
 }
 
@@ -40,7 +39,7 @@ export function useFormField<T>(props: FormFieldProps<T> | (() => FormField<T>))
 
             return props.value as T;
         },
-        set: update
+        set: update,
     });
 
     const disabled = computed(() => {
@@ -55,7 +54,7 @@ export function useFormField<T>(props: FormFieldProps<T> | (() => FormField<T>))
         value,
         disabled,
         errors,
-        update
+        update,
     });
 }
 
@@ -63,10 +62,10 @@ function useFormFieldProxy<T>(field: () => FormField<T>) {
     return createFieldCore(new FormField<T>(), {
         value: computed({
             get: () => field().value,
-            set: v => field().update(v)
+            set: (v) => field().update(v),
         }),
         disabled: computed(() => field().disabled),
         errors: computed(() => field().errors),
-        update: v => field().update(v)
+        update: (v) => field().update(v),
     });
 }

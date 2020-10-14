@@ -6,19 +6,29 @@ import { PropTypes } from './reexports';
 
 type MixinProps<TProps, TParam> = TProps | ((this: void, param: TParam) => TProps);
 
-export interface MixinOptions<TProps extends {}, TResult extends {}, TParam> {
+export interface MixinOptions<
+    TProps extends Record<string, unknown>,
+    TResult extends Record<string, unknown>,
+    TParam
+> {
     props?: MixinProps<TProps, TParam>;
     setup(this: void, props: PropTypes<TProps>, ctx: SetupContext): TResult;
 }
 
-export interface Mixin<TProps extends {}, TResult extends {}, TParam> {
+export interface Mixin<
+    TProps extends Record<string, unknown>,
+    TResult extends Record<string, unknown>,
+    TParam
+> {
     props(param: TParam): TProps;
     setup(this: void, props: PropTypes<TProps>, ctx: SetupContext): UnwrapRef<TResult>;
 }
 
-export function mixin<TProps extends {}, TResult extends {}, TParam = void>(
-    opts: MixinOptions<TProps, TResult, TParam>
-): Mixin<TProps, TResult, TParam> {
+export function mixin<
+    TProps extends Record<string, unknown>,
+    TResult extends Record<string, unknown>,
+    TParam = void
+>(opts: MixinOptions<TProps, TResult, TParam>): Mixin<TProps, TResult, TParam> {
     return {
         props: wrapProps(opts.props),
         setup(props, ctx) {

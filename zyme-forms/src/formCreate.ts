@@ -33,7 +33,7 @@ export function createFormAsync<T extends {}>(
     const form = new FormImpl<T>(null);
 
     // async loading of the form
-    fcn().then(m => {
+    void fcn().then((m) => {
         form.update(m);
     });
 
@@ -47,7 +47,7 @@ class FormImpl<T extends FormModelBase> extends Form<T> {
 
         form.value = model as T;
         form.errors = unref(computed(() => getErrorsForModel(form.value)));
-        form.update = v => (form.value = v);
+        form.update = (v) => (form.value = v);
     }
 
     public disabled: boolean = false;
@@ -84,7 +84,7 @@ class FormImpl<T extends FormModelBase> extends Form<T> {
         for (const error of errors) {
             currentErrors.push({
                 key: normalizeErrorExpression(error.key),
-                message: error.message
+                message: error.message,
             });
         }
 

@@ -64,7 +64,7 @@ export function useDataSource<T, TResult>(opts: DataSourceOptions<T, TResult>) {
         data: unref(dataRef),
         loading: unref(loadingRef),
         reload() {
-            debouncedLoad();
+            void debouncedLoad();
             return debouncedLoad.flush();
         },
     }) as DataSource<TResult>;

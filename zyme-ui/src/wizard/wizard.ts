@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCurrentInstance, set, Ref } from '@vue/composition-api';
 import { ComponentOptions } from 'vue';
 import {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Vue, { ComponentOptions } from 'vue';
 import { getCurrentInstance } from '@vue/composition-api';
 import { prop, CancelError, PropTypes } from 'zyme';
@@ -44,7 +45,7 @@ const modals: ModalHandler<unknown>[] = [];
 
 export function useModalProps<T = void>() {
     return {
-        modal: prop<ModalHandler<T>>().required()
+        modal: prop<ModalHandler<T>>().required(),
     };
 }
 
@@ -78,7 +79,7 @@ export function useModal() {
                     cancel() {
                         reject(new CancelError());
                         closeModal();
-                    }
+                    },
                 };
 
                 modals.push(handler);
@@ -87,13 +88,13 @@ export function useModal() {
 
                 const vm = new Vue({
                     parent: currentInstance ?? undefined,
-                    render: h =>
+                    render: (h) =>
                         h(view, {
                             props: {
                                 ...props,
-                                modal: handler
-                            }
-                        })
+                                modal: handler,
+                            },
+                        }),
                 });
 
                 vm.$mount();
@@ -114,8 +115,8 @@ export function useModal() {
             return promise;
         },
         closeAll() {
-            modals.forEach(m => m.cancel());
-        }
+            modals.forEach((m) => m.cancel());
+        },
     };
 }
 
@@ -123,7 +124,7 @@ function unwrapModalComponent<T>(modal: ModalComponentView<T>) {
     if (modal instanceof Promise) {
         // unwrap the view promise
         const viewPromise = modal;
-        return () => viewPromise.then(v => v.default);
+        return () => viewPromise.then((v) => v.default);
     }
 
     if (modal instanceof Function) {
@@ -131,7 +132,7 @@ function unwrapModalComponent<T>(modal: ModalComponentView<T>) {
         return () => {
             const promise = fcn() as Promise<any>;
 
-            return promise.then(x => {
+            return promise.then((x) => {
                 if (x.default) {
                     return x.default;
                 }

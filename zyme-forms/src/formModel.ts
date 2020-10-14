@@ -8,7 +8,7 @@ interface FormModelArrayLike<T> {
 type FormModelArray<T> = FormModelArrayLike<T> & Pick<T[], keyof T[]>;
 
 type FormValueCheck<T> = T extends string
-    ? string // tslint:disable-next-line: ban-types
+    ? string // eslint-disable-next-line @typescript-eslint/ban-types
     : T extends Function
     ? never
     : T extends any[]
@@ -20,7 +20,7 @@ type FormValueCheck<T> = T extends string
     : Exclude<T, undefined>;
 
 type FormModelCheck<T> = T extends string
-    ? never // tslint:disable-next-line: ban-types
+    ? never // eslint-disable-next-line @typescript-eslint/ban-types
     : T extends Function
     ? never
     : T extends any[]

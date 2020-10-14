@@ -22,10 +22,10 @@ export const ResponsiveContent: FunctionalComponentOptions<ResponsiveContentProp
         if (context.props.breakpoint) {
             const breakpoint = context.props.breakpoint;
 
-            if(typeof breakpoint === 'number') {
+            if (typeof breakpoint === 'number') {
                 defaultBreakpoint = breakpoint;
             } else {
-                defaultBreakpoint =  breakpoints[breakpoint] ?? 1;
+                defaultBreakpoint = breakpoints[breakpoint] ?? 1;
             }
         }
 

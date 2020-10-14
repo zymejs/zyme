@@ -3,7 +3,7 @@ import { ref, Ref } from '@vue/composition-api';
 export function useAsync<T>(fcn: () => Promise<T>): Ref<T | null> {
     const reference: Ref<T | null> = ref(null);
 
-    fcn().then((result) => {
+    void fcn().then((result) => {
         reference.value = result;
     });
 
@@ -13,7 +13,7 @@ export function useAsync<T>(fcn: () => Promise<T>): Ref<T | null> {
 export function refAsync<T>(promise: Promise<T>): Ref<T | undefined> {
     const reference = ref<T>();
 
-    promise.then((result) => {
+    void promise.then((result) => {
         reference.value = result;
     });
 

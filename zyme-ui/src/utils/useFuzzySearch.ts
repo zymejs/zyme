@@ -16,7 +16,7 @@ const fuseImport = () => import('fuse.js').then((f) => f.default);
 type Fuse = InstanceOf<AsyncFunctionResult<typeof fuseImport>>;
 
 export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
-    const result : Ref<readonly T[]> = ref([]);
+    const result: Ref<readonly T[]> = ref([]);
 
     let items = isRef(options.items) ? options.items.value : options.items();
     let search = isRef(options.search) ? options.search.value : options.search();
@@ -33,15 +33,15 @@ export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
     watch(options.items, (i) => {
         items = i;
         dirty = true;
-        runSearch();
+        void runSearch();
     });
 
     watch(options.search, (s) => {
         search = s;
-        runSearch();
+        void runSearch();
     });
 
-    runSearch();
+    void runSearch();
 
     async function runSearchCore() {
         if (!items || !items.length || !search || !search.length) {

@@ -3,6 +3,7 @@ import { toRef, unref, writable, RefParam } from 'zyme';
 
 import { getErrorsForModel } from './formErrorHelpers';
 
+// eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
 export type FormModelBase = object | any[];
 
 export interface FieldOptions<TValue> {

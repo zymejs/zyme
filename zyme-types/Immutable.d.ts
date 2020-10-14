@@ -1,8 +1,11 @@
 // this is a dummy import just to make it an external module
 // it's required to global scope to be working
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Vue from 'vue';
 
-type ImmutableObject<T extends {}> = { readonly [P in keyof T]: Immutable<T[P]> };
+type ImmutableObject<T extends Record<string, unknown>> = {
+    readonly [P in keyof T]: Immutable<T[P]>;
+};
 
 interface ImmutableArrayLike<T> {
     readonly length: number;
@@ -13,14 +16,14 @@ type ImmutableArray<T> = readonly Immutable<T>[];
 
 declare global {
     type Immutable<T> = T extends string
-        ? T // tslint:disable-next-line: ban-types
+        ? T // eslint-disable-next-line @typescript-eslint/ban-types
         : T extends Function
         ? T
         : T extends any[]
         ? ImmutableArray<ArrayItem<T>>
         : T extends ArrayLike<any>
         ? ImmutableArrayLike<ArrayItem<T>>
-        : T extends object
+        : T extends Record<string, unknown>
         ? ImmutableObject<T>
         : T;
 }

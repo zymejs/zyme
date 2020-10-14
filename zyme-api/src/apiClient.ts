@@ -1,4 +1,4 @@
-import { ref, Ref } from '@vue/composition-api';
+import { ref, Ref, UnwrapRef } from '@vue/composition-api';
 import { Form, FormModelBase } from 'zyme-forms';
 
 import { ApiEndpoint } from './apiEndpoint';
@@ -14,24 +14,24 @@ class ApiClient {
         return callEndpoint({
             endpoint,
             request: request as T,
-            interceptor: this.interceptor
+            interceptor: this.interceptor,
         });
     }
 
     load<TResult>(endpoint: ApiEndpoint<void, TResult>): Ref<TResult | null>;
     load<T, TResult>(endpoint: ApiEndpoint<T, TResult>, request: T): Ref<TResult | null>;
     load<T, TResult>(endpoint: ApiEndpoint<T, TResult>, request?: T): Ref<TResult | null> {
-        const result = ref<TResult>(null);
+        const result = ref<TResult | null>(null);
 
         callEndpoint({
             endpoint,
             request: request as T,
-            interceptor: this.interceptor
-        }).then(r => {
-            result.value = r;
+            interceptor: this.interceptor,
+        }).then((r) => {
+            result.value = r as UnwrapRef<TResult>;
         });
 
-        return result;
+        return result as Ref<TResult | null>;
     }
     submitForm<T extends FormModelBase, TResult>(
         form: Form<T>,

@@ -39,7 +39,7 @@ export function unwrapComponentDefinition(
     return component;
 }
 
-// tslint:disable-next-line: ban-types
+// eslint-disable-next-line @typescript-eslint/ban-types
 function isVueSubclass(type: Function): type is typeof Vue {
     return type.prototype instanceof Vue;
 }

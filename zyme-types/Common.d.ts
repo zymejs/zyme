@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // this is a dummy import just to make it an external module
 // it's required to global scope to be working
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Vue from 'vue';
 
 type PrimitiveConstructor<T> = new (...args: any[]) => T;
@@ -38,7 +41,7 @@ declare global {
     type InstanceOf<T> = T extends PrimitiveConstructor<infer X> ? X : never;
 
     type PropertyNames<T> = {
-        // tslint:disable-next-line: ban-types
+        // eslint-disable-next-line @typescript-eslint/ban-types
         [K in keyof T]: T[K] extends Function ? never : K;
     }[keyof T];
 

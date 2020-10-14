@@ -50,7 +50,7 @@ export function postFileUpload<TRequest = FileList>(
         data: request => {
             const files = options ? options.files(request) : ((request as unknown) as FileList);
             const formData = new FormData();
-            // tslint:disable-next-line: prefer-for-of
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 formData.append('files[]', file, file.name);

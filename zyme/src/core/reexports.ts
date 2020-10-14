@@ -31,15 +31,15 @@ interface PropOptions<T = any> {
 declare type PropType<T> = PropConstructor<T> | PropConstructor<T>[];
 declare type PropConstructor<T> =
     | {
-          // tslint:disable-next-line: callable-types
+          // eslint-disable-next-line @typescript-eslint/prefer-function-type
           new (...args: any[]): T & object;
       }
     | {
-          // tslint:disable-next-line: callable-types
+          // eslint-disable-next-line @typescript-eslint/prefer-function-type
           (): T;
       }
     | {
-          // tslint:disable-next-line: callable-types ban-types
+          // eslint-disable-next-line @typescript-eslint/prefer-function-type, @typescript-eslint/ban-types
           new (...args: string[]): Function;
       };
 declare type RequiredKeys<T, MakeDefaultRequired> = {
@@ -59,13 +59,13 @@ declare type OptionalKeys<T, MakeDefaultRequired> = Exclude<
     keyof T,
     RequiredKeys<T, MakeDefaultRequired>
 >;
-// tslint:disable-next-line: ban-types
+// eslint-disable-next-line @typescript-eslint/ban-types
 declare type ExtractFunctionPropType<
     T extends Function,
     TArgs extends any[] = any[],
     TResult = any
 > = T extends (...args: TArgs) => TResult ? T : never;
-// tslint:disable-next-line: ban-types
+// eslint-disable-next-line @typescript-eslint/ban-types
 declare type ExtractCorrectPropType<T> = T extends Function
     ? ExtractFunctionPropType<T>
     : Exclude<T, Function>;
