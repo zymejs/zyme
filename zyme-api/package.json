@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "main": "./src/index.ts",
     "dependencies": {
-        "@vue/composition-api": "1.0.0-beta.14",
+        "@vue/composition-api": "1.0.0-beta.16",
         "axios": "^0.20.0",
         "lodash": "^4.17.20",
         "vue": "^2.6.12",
@@ -14,7 +14,7 @@
         "zyme-forms": "1.0.0"
     },
     "devDependencies": {
-        "@types/lodash": "^4.14.161",
+        "@types/lodash": "^4.14.162",
         "@types/zyme": "1.0.0",
         "prettier": "^2.1.2",
         "tslint": "^6.1.3",
