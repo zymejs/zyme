@@ -1,6 +1,6 @@
 const obfuscator = require('./css-obfuscator');
 
-module.exports = function ({ prefix, excludeFiles }) {
+module.exports = function ({ prefix, excludeFiles, minify }) {
     return {
         postTransformNode(el, ctx) {
             const filePath = ctx.filename;
@@ -22,6 +22,7 @@ module.exports = function ({ prefix, excludeFiles }) {
                             file: filePath,
                             cssClass: c,
                             prefix,
+                            minify,
                         })
                     )
                     .join(' ');

@@ -1,17 +1,19 @@
 const vueCompilerModule = require('./vue-compiler-module');
 const { obfuscateClass } = require('./css-obfuscator');
 
-module.exports = function ({ prefix, excludeFiles }) {
+module.exports = function ({ prefix, excludeFiles, minify }) {
     return {
         vueCompilerModule: vueCompilerModule({
             prefix,
             excludeFiles,
+            minify,
         }),
         vueLoader: {
             loader: require.resolve('./vue-loader'),
             options: {
                 prefix,
                 excludeFiles,
+                minify,
             },
         },
         cssOptions: {
@@ -32,6 +34,7 @@ module.exports = function ({ prefix, excludeFiles }) {
                         cssClass: localName,
                         prefix,
                         excludeFiles,
+                        minify,
                     });
                 },
             },
@@ -41,6 +44,7 @@ module.exports = function ({ prefix, excludeFiles }) {
             options: {
                 prefix,
                 excludeFiles,
+                minify,
             },
         },
     };

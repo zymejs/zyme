@@ -27,6 +27,7 @@ module.exports = function (source) {
         file: filePath,
         source: source,
         prefix: options.prefix,
+        minify: options.minify,
     });
 
     Promise.all([scriptExists, styleExists])

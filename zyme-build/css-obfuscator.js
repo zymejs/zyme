@@ -1,6 +1,5 @@
 const { getBasePath } = require('./path-utils');
 
-const prod = process.env.NODE_ENV === 'production';
 const classRegex = /\$C\((\'(\^?[\w-_]*)\'|\"(\^?[\w-_]*)\"|(\^?[\w-_]*))\)/g;
 
 if (!process.cssClassIdents) {
@@ -10,7 +9,7 @@ if (!process.cssClassCounter) {
     process.cssClassCounter = 1;
 }
 
-function obfuscateClass({ file, cssClass, prefix }) {
+function obfuscateClass({ file, cssClass, prefix, minify }) {
     if (prefix == null) {
         prefix = '';
     }
@@ -28,14 +27,14 @@ function obfuscateClass({ file, cssClass, prefix }) {
         return cssClass.slice(2);
     }
 
-    if (prod) {
+    if (minify) {
         return `${prefix}${ident}`;
     } else {
         return `${cssClass}__${ident}`;
     }
 }
 
-function obfuscateSource({ file, source, prefix }) {
+function obfuscateSource({ file, source, prefix, minify }) {
     return source.replace(classRegex, (match, g1, g2, g3, g4) => {
         const className = g2 || g3 || g4;
         if (!className) {
@@ -46,6 +45,7 @@ function obfuscateSource({ file, source, prefix }) {
             file: file,
             cssClass: className,
             prefix,
+            minify,
         });
 
         if (g2) {
