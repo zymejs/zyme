@@ -8,6 +8,6 @@
         "vue": "^2.6.12"
     },
     "devDependencies": {
-        "prettier": "^2.2.0"
+        "prettier": "^2.2.1"
     }
 }

@@ -10,7 +10,7 @@
         "zyme": "1.0.0"
     },
     "devDependencies": {
-        "prettier": "^2.2.0"
+        "prettier": "^2.2.1"
     },
     "include": [
         "./**/*.ts"
