@@ -1,7 +1,7 @@
 import { requireCurrentInstance } from 'zyme';
 
 export function useScrollToElement() {
-    const vm = requireCurrentInstance();
+    const vm = requireCurrentInstance().proxy;
 
     return function (opts: ScrollIntoViewOptions) {
         const el = vm.$el;

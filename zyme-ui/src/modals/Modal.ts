@@ -63,7 +63,7 @@ interface OpenModalOptionsWithProps<T> {
 }
 
 export function useModal() {
-    const currentInstance = getCurrentInstance();
+    const currentInstance = getCurrentInstance()?.proxy;
 
     return {
         open<T extends ModalComponentOptions<any, any>>(options: OpenModalOptions<T>) {

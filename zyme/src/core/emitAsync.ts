@@ -1,7 +1,7 @@
 import { requireCurrentInstance } from './helpers';
 
 export function useEmitAsync() {
-    const vm = requireCurrentInstance();
+    const vm = requireCurrentInstance().proxy;
 
     return (event: string, arg?: any) => emitAsync(vm, event, arg);
 }

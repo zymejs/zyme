@@ -6,11 +6,11 @@ import {
 import { requireCurrentInstance } from './helpers';
 
 export function onMounted(callback: (vm: Vue) => void) {
-    const vm = requireCurrentInstance();
+    const vm = requireCurrentInstance().proxy;
     onMountedImport(() => callback(vm));
 }
 
 export function onBeforeUnmount(callback: (vm: Vue) => void) {
-    const vm = requireCurrentInstance();
+    const vm = requireCurrentInstance().proxy;
     onBeforeUnmountImport(() => callback(vm));
 }
