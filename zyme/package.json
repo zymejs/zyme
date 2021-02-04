@@ -5,14 +5,14 @@
     "version": "1.0.0",
     "main": "./src/index.ts",
     "dependencies": {
-        "@vue/composition-api": "1.0.0-beta.25",
+        "@vue/composition-api": "1.0.0-rc.1",
         "axios": "^0.21.1",
         "lodash": "^4.17.20",
         "vue": "^2.6.12",
-        "vue-router": "^3.4.7"
+        "vue-router": "^3.4.9"
     },
     "devDependencies": {
-        "@types/lodash": "^4.14.167",
+        "@types/lodash": "^4.14.168",
         "@types/zyme": "1.0.0",
         "prettier": "^2.2.1",
         "typescript": "^4.1.3"
