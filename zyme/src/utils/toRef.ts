@@ -27,8 +27,8 @@ function wrapWithRef<T>(param: RefParam<T> | T) {
         return param;
     }
 
-    if (param instanceof Function) {
-        return computed(param);
+    if (param instanceof Function || typeof param === 'function') {
+        return computed(param as (this: void) => T);
     }
 
     return ref(param) as Readonly<Ref<T>>;
