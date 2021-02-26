@@ -5,4 +5,5 @@ export * from './onWindowResize';
 export * from './onElementScroll';
 export * from './onWindowScroll';
 export * from './onElementResize';
+export * from './onElementIntersect';
 export * from './useBreakpoint';
