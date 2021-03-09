@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "main": "./src/index.ts",
     "dependencies": {
-        "@vue/composition-api": "1.0.0-rc.3",
+        "@vue/composition-api": "1.0.0-rc.2",
         "axios": "^0.21.1",
         "lodash": "^4.17.21",
         "vue": "^2.6.12",
