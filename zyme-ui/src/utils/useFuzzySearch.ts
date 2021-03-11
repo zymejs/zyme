@@ -3,10 +3,15 @@ import debounce from 'lodash/debounce';
 
 type Getter<T> = Ref<T> | (() => T);
 
+export interface FuzzyKey<T> {
+    name: keyof T;
+    weight: number;
+}
+
 export interface FuzzySearchOptions<T> {
     items: Getter<readonly T[] | null | undefined>;
     search: Getter<string | null | undefined>;
-    keys?: (keyof T)[];
+    keys?: (keyof T | FuzzyKey<T>)[];
     debounce?: number;
     threshold?: number;
     maxResults?: number;
@@ -56,7 +61,7 @@ export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
                 shouldSort: true,
                 minMatchCharLength: 1,
                 // take the keys as provided, or search by all keys
-                keys: (options.keys ?? []) as string[],
+                keys: (options.keys ?? []) as import('fuse.js').default.FuseOptionKey[],
                 threshold: options.threshold ?? 0.4,
                 ignoreLocation: true,
             });
