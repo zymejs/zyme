@@ -14,7 +14,7 @@ export interface FuzzySearchOptions<T> {
     keys?: (keyof T | FuzzyKey<T>)[];
     debounce?: number;
     threshold?: number;
-    maxResults?: number;
+    onResult?(result: T[]): T[];
 }
 
 const fuseImport = () => import('fuse.js').then((f) => f.default);
@@ -76,9 +76,9 @@ export function useFuzzySearch<T>(options: FuzzySearchOptions<T>) {
         setResults(results.map((x) => x.item) as T[]);
     }
 
-    function setResults(results: readonly T[] | null) {
-        if (results && options.maxResults) {
-            results = results.slice(0, options.maxResults);
+    function setResults(results: T[] | null) {
+        if (results && options.onResult) {
+            results = options.onResult(results);
         }
 
         result.value = results;
