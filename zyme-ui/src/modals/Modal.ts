@@ -3,7 +3,7 @@ import Vue, { ComponentOptions } from 'vue';
 import { getCurrentInstance } from '@vue/composition-api';
 import { prop, CancelError, PropTypes } from 'zyme';
 
-import { getScrollBarWidth } from '../utils';
+import { disableBodyScroll, enableBodyScroll } from '../utils';
 
 type ModalHandlerProps<TResult> = {
     modal: ModalHandler<TResult>;
@@ -84,8 +84,6 @@ export function useModal() {
 
                 modals.push(handler);
 
-                updateBodyMargin();
-
                 const vm = new Vue({
                     parent: currentInstance ?? undefined,
                     render: (h) =>
@@ -98,6 +96,7 @@ export function useModal() {
                 });
 
                 vm.$mount();
+                disableBodyScroll(vm.$el);
 
                 const body = currentInstance?.$el.ownerDocument?.body ?? document.body;
                 body.appendChild(vm.$el);
@@ -108,7 +107,7 @@ export function useModal() {
                     // remove it from modal queue
                     modals.splice(modals.indexOf(handler), 1);
 
-                    updateBodyMargin();
+                    enableBodyScroll(vm.$el);
                 }
             });
 
@@ -143,20 +142,4 @@ function unwrapModalComponent<T>(modal: ModalComponentView<T>) {
     }
 
     return modal;
-}
-
-let originalBodyMargin: string | null = null;
-let originalBodyOverflow: string | null = null;
-
-function updateBodyMargin() {
-    if (modals.length) {
-        originalBodyOverflow = document.body.style.overflowY;
-        originalBodyMargin = document.body.style.marginRight;
-
-        document.body.style.overflowY = 'hidden';
-        document.body.style.marginRight = getScrollBarWidth() + 'px';
-    } else {
-        document.body.style.overflowY = originalBodyOverflow || '';
-        document.body.style.marginRight = originalBodyMargin || '';
-    }
 }

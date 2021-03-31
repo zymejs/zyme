@@ -6,6 +6,7 @@
     "main": "./src/index.ts",
     "scripts": {},
     "dependencies": {
+        "body-scroll-lock": "^3.1.5",
         "css-element-queries": "^1.2.3",
         "fuse.js": "^6.4.6",
         "lodash": "^4.17.21",

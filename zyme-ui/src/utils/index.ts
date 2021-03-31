@@ -4,3 +4,4 @@ export * from './useScrollToElement';
 export * from './useFuzzySearch';
 export * from './useGlobalClass';
 export * from './onKeyUp';
+export * from './bodyScrollLock';
