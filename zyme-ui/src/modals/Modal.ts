@@ -4,6 +4,7 @@ import { getCurrentInstance } from '@vue/composition-api';
 import { prop, CancelError, PropTypes } from 'zyme';
 
 import { disableBodyScroll, enableBodyScroll } from '../utils';
+import { useVirtualHistory } from '../history';
 
 type ModalHandlerProps<TResult> = {
     modal: ModalHandler<TResult>;
@@ -36,7 +37,7 @@ type ModalProps<T> = keyof ModalPropsWithoutHandler<T> extends never
 
 type ModalResult<T> = T extends ModalComponentOptions<infer TResult, any> ? TResult : never;
 
-interface ModalHandler<T> {
+export interface ModalHandler<T> {
     done(result: T): void;
     cancel(): void;
 }
@@ -64,6 +65,7 @@ interface OpenModalOptionsWithProps<T> {
 
 export function useModal() {
     const currentInstance = getCurrentInstance()?.proxy;
+    const virtualHistory = useVirtualHistory();
 
     return {
         open<T extends ModalComponentOptions<any, any>>(options: OpenModalOptions<T>) {
@@ -71,6 +73,8 @@ export function useModal() {
             const props = (options as OpenModalOptionsWithProps<T>).props;
 
             const promise = new Promise<ModalResult<T>>((resolve, reject) => {
+                const historySymbol = virtualHistory.pushState(closeModal);
+
                 const handler: ModalHandler<ModalResult<T>> = {
                     done(result) {
                         resolve(result);
@@ -108,6 +112,7 @@ export function useModal() {
                     modals.splice(modals.indexOf(handler), 1);
 
                     enableBodyScroll(vm.$el);
+                    virtualHistory.popState(historySymbol);
                 }
             });
 
