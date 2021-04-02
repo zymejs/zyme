@@ -6,7 +6,7 @@
     "dependencies": {
         "@types/zyme": "1.0.0",
         "@types/zyme-ui": "1.0.0",
-        "jsep": "^0.3.5",
+        "jsep": "^0.4.0",
         "lodash": "^4.17.21",
         "vue": "^2.6.12",
         "zyme": "1.0.0"
