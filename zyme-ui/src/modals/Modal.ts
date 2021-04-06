@@ -77,12 +77,10 @@ export function useModal() {
 
                 const handler: ModalHandler<ModalResult<T>> = {
                     done(result) {
-                        resolve(result);
-                        closeModal();
+                        closeModal().then(() => resolve(result));
                     },
                     cancel() {
-                        reject(new CancelError());
-                        closeModal();
+                        closeModal().then(() => reject(new CancelError()));
                     },
                 };
 
@@ -105,14 +103,17 @@ export function useModal() {
                 const body = currentInstance?.$el.ownerDocument?.body ?? document.body;
                 body.appendChild(vm.$el);
 
-                function closeModal() {
+                async function closeModal() {
                     vm.$destroy();
                     vm.$el.remove();
                     // remove it from modal queue
                     modals.splice(modals.indexOf(handler), 1);
 
                     enableBodyScroll(vm.$el);
-                    virtualHistory.popState(historySymbol);
+
+                    // we should wait for every pop state handler to run
+                    // otherwise can infer with vue router
+                    await virtualHistory.popState(historySymbol);
                 }
             });
 
