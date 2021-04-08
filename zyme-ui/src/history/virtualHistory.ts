@@ -37,7 +37,6 @@ function pushState(onBack: () => void): symbol {
     backstack.push(entry);
     setupVirtualState();
 
-    console.warn(backstack, history.state);
     return entry.symbol;
 }
 
@@ -60,7 +59,6 @@ async function popState(symbol: symbol) {
         await historyBack();
     }
 
-    console.warn(backstack, history.state);
     await pending;
 }
 
