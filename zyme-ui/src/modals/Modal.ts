@@ -1,3 +1,4 @@
+import { ref } from '@vue/composition-api';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Vue, { ComponentOptions } from 'vue';
 import { getCurrentInstance } from '@vue/composition-api';
@@ -73,47 +74,76 @@ export function useModal() {
             const props = (options as OpenModalOptionsWithProps<T>).props;
 
             const promise = new Promise<ModalResult<T>>((resolve, reject) => {
-                const historySymbol = virtualHistory.pushState(closeModal);
+                const open = ref(true);
 
                 const handler: ModalHandler<ModalResult<T>> = {
                     done(result) {
-                        closeModal().then(() => resolve(result));
+                        if (!open.value) {
+                            return;
+                        }
+
+                        void closeModal().then(() => resolve(result));
                     },
                     cancel() {
-                        closeModal().then(() => reject(new CancelError()));
+                        if (!open.value) {
+                            return;
+                        }
+
+                        void closeModal().then(() => reject(new CancelError()));
                     },
                 };
 
                 modals.push(handler);
 
-                const vm = new Vue({
-                    parent: currentInstance ?? undefined,
-                    render: (h) =>
-                        h(view, {
-                            props: {
-                                ...props,
-                                modal: handler,
-                            },
-                        }),
+                const historySymbol = virtualHistory.pushState(handler.cancel);
+
+                const vmPromise = new Promise<void>((resolve) => {
+                    const vm = new Vue({
+                        parent: currentInstance ?? undefined,
+                        render(h) {
+                            const component = open.value ? view : undefined;
+
+                            const node = h(component, {
+                                props: {
+                                    ...props,
+                                    modal: handler,
+                                },
+                                on: {
+                                    'hook:beforeDestroy': beforeDestroy,
+                                },
+                            });
+
+                            return node;
+                        },
+                    });
+
+                    vm.$mount();
+                    disableBodyScroll(vm.$el);
+
+                    const body = currentInstance?.$el.ownerDocument?.body ?? document.body;
+                    body.appendChild(vm.$el);
+
+                    async function beforeDestroy() {
+                        if (open.value) {
+                            // modal is still open, there is some v-if in the modal component
+                            return;
+                        }
+
+                        enableBodyScroll(vm.$el);
+                        resolve();
+                    }
                 });
 
-                vm.$mount();
-                disableBodyScroll(vm.$el);
-
-                const body = currentInstance?.$el.ownerDocument?.body ?? document.body;
-                body.appendChild(vm.$el);
-
                 async function closeModal() {
-                    vm.$destroy();
-                    vm.$el.remove();
+                    open.value = false;
+
                     // remove it from modal queue
                     modals.splice(modals.indexOf(handler), 1);
-
-                    enableBodyScroll(vm.$el);
 
                     // we should wait for every pop state handler to run
                     // otherwise can infer with vue router
                     await virtualHistory.popState(historySymbol);
+                    await vmPromise;
                 }
             });
 

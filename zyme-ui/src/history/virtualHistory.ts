@@ -37,31 +37,30 @@ function pushState(onBack: () => void): symbol {
     backstack.push(entry);
     setupVirtualState();
 
+    console.warn(backstack, history.state);
     return entry.symbol;
 }
 
 async function popState(symbol: symbol) {
-    let state = history.state;
+    let entry = backstack.pop();
+    while (entry) {
+        if (entry.symbol === symbol) {
+            break;
+        }
 
+        entry = backstack.pop();
+    }
+
+    const state = history.state;
     if (!isVirtualState(state) || state.backstackUid !== backstackUid) {
         return;
     }
 
-    if (!state.initial) {
-        let entry = backstack.pop();
-        while (entry) {
-            if (entry.symbol === symbol) {
-                break;
-            }
-
-            entry = backstack.pop();
-        }
-
-        if (backstack.length === 0) {
-            await historyBack();
-        }
+    if (!state.initial && backstack.length === 0) {
+        await historyBack();
     }
 
+    console.warn(backstack, history.state);
     await pending;
 }
 
