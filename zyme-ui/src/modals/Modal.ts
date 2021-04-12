@@ -4,8 +4,7 @@ import Vue, { ComponentOptions } from 'vue';
 import { getCurrentInstance } from '@vue/composition-api';
 import { prop, CancelError, PropTypes } from 'zyme';
 
-import { disableBodyScroll, enableBodyScroll } from '../utils';
-import { useVirtualHistory } from '../history';
+import { disableBodyScroll, enableBodyScroll, useVirtualHistory } from '../utils';
 
 type ModalHandlerProps<TResult> = {
     modal: ModalHandler<TResult>;
@@ -95,7 +94,7 @@ export function useModal() {
 
                 modals.push(handler);
 
-                const historySymbol = virtualHistory.pushState(handler.cancel);
+                const historyHandle = virtualHistory.pushState(handler.cancel);
 
                 const vmPromise = new Promise<void>((resolve) => {
                     const vm = new Vue({
@@ -140,9 +139,7 @@ export function useModal() {
                     // remove it from modal queue
                     modals.splice(modals.indexOf(handler), 1);
 
-                    // we should wait for every pop state handler to run
-                    // otherwise can infer with vue router
-                    await virtualHistory.popState(historySymbol);
+                    historyHandle.cancel();
                     await vmPromise;
                 }
             });
