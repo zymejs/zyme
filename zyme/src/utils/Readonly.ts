@@ -8,3 +8,7 @@ export function writable<T>(value: T | Readonly<T>): Writable<T> {
 export function readonly<T>(value: T): Readonly<T> {
     return value;
 }
+
+export function immutable<T>(value: T): Immutable<T> {
+    return value as Immutable<T>;
+}
