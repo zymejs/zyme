@@ -7,3 +7,4 @@ export * from './onKeyUp';
 export * from './bodyScrollLock';
 export * from './useVirtualHistory';
 export * from './onHistoryBack';
+export * from './useDisableBodyScroll';
