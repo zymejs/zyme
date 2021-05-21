@@ -134,7 +134,7 @@ function createFieldSingleSelect<T, TKey extends keyof T, TItem>(
     const items = computed(() => itemsRef.value ?? []);
 
     const selectedItem = computed(() => {
-        return itemsRef.value?.find(i => itemValue(i) === value.value) ?? null;
+        return itemsRef.value?.find((i) => itemValue(i) === value.value) ?? null;
     });
 
     field.items = unref(items);
@@ -158,13 +158,19 @@ function createFieldSingleSelect<T, TKey extends keyof T, TItem>(
             }
         });
 
-        watch(selectedItemWithFallback, (item) => {
-            const selected = selectedItem.value;
-            if (!selected && item) {
-                // select the first item
-                update(itemValue(item));
+        watch(
+            selectedItemWithFallback,
+            (item) => {
+                const selected = selectedItem.value;
+                if (!selected && item) {
+                    // select the first item
+                    update(itemValue(item));
+                }
+            },
+            {
+                immediate: true,
             }
-        });
+        );
     }
 
     return (reactive(field) as unknown) as FormFieldWrapper<SingleSelectField<T[TKey], TItem>>;
@@ -229,6 +235,6 @@ function prepareField<T, TKey extends keyof T, TValue extends T[TKey]>(
         value,
         errors,
         disabled,
-        update
+        update,
     };
 }
