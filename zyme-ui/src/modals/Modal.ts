@@ -1,4 +1,4 @@
-import { ref } from '@vue/composition-api';
+import { ref, onUnmounted } from '@vue/composition-api';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Vue, { ComponentOptions } from 'vue';
 import { getCurrentInstance } from '@vue/composition-api';
@@ -42,7 +42,7 @@ export interface ModalHandler<T> {
     cancel(): void;
 }
 
-const modals: ModalHandler<unknown>[] = [];
+const allModals: ModalHandler<unknown>[] = [];
 
 export function useModalProps<T = void>() {
     return {
@@ -63,9 +63,25 @@ interface OpenModalOptionsWithProps<T> {
     props: ModalProps<T>;
 }
 
-export function useModal() {
+interface ModalOptions {
+    /**
+     * Close all open modals when component is unmounted.
+     * By default true
+     */
+    closeOnUnmounted?: boolean;
+}
+
+export function useModal(opts?: ModalOptions) {
     const currentInstance = getCurrentInstance()?.proxy;
     const virtualHistory = useVirtualHistory();
+
+    const localModals: ModalHandler<unknown>[] = [];
+
+    const closeOnUnmounted = opts?.closeOnUnmounted ?? true;
+
+    if (closeOnUnmounted) {
+        onUnmounted(() => localModals.forEach((m) => m.cancel()));
+    }
 
     return {
         open<T extends ModalComponentOptions<any, any>>(options: OpenModalOptions<T>) {
@@ -92,7 +108,8 @@ export function useModal() {
                     },
                 };
 
-                modals.push(handler);
+                localModals.push(handler);
+                allModals.push(handler);
 
                 const historyHandle = virtualHistory.pushState(handler.cancel);
 
@@ -137,7 +154,8 @@ export function useModal() {
                     open.value = false;
 
                     // remove it from modal queue
-                    modals.splice(modals.indexOf(handler), 1);
+                    localModals.splice(localModals.indexOf(handler), 1);
+                    allModals.splice(allModals.indexOf(handler), 1);
 
                     historyHandle.cancel();
                     await vmPromise;
@@ -147,7 +165,7 @@ export function useModal() {
             return promise;
         },
         closeAll() {
-            modals.forEach((m) => m.cancel());
+            allModals.forEach((m) => m.cancel());
         },
     };
 }
