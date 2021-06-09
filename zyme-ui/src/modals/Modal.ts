@@ -108,6 +108,7 @@ export function useModal() {
                                     modal: handler,
                                 },
                                 on: {
+                                    'hook:mounted': onMounted,
                                     'hook:beforeDestroy': beforeDestroy,
                                 },
                             });
@@ -117,10 +118,16 @@ export function useModal() {
                     });
 
                     vm.$mount();
-                    disableBodyScroll(vm.$el);
 
-                    const body = currentInstance?.$el.ownerDocument?.body ?? document.body;
-                    body.appendChild(vm.$el);
+                    async function onMounted() {
+                        const modalElement = vm.$el.children[0];
+                        if (modalElement) {
+                            disableBodyScroll(modalElement);
+                        }
+
+                        const body = currentInstance?.$el.ownerDocument?.body ?? document.body;
+                        body.appendChild(vm.$el);
+                    }
 
                     async function beforeDestroy() {
                         if (open.value) {
@@ -128,7 +135,11 @@ export function useModal() {
                             return;
                         }
 
-                        enableBodyScroll(vm.$el);
+                        const modalElement = vm.$el.children[0];
+                        if (modalElement) {
+                            enableBodyScroll(modalElement);
+                        }
+
                         resolve();
                     }
                 });
